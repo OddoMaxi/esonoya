@@ -27,7 +27,7 @@ envVarGroups:
       - key: QUEUE_CONNECTION
         value: redis
       - key: REDIS_CLIENT
-        value: phpredis
+        value: predis
       - key: SANCTUM_EXPIRATION
         value: "10080"
       - key: OTP_LENGTH
