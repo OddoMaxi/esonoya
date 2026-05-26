@@ -109,7 +109,7 @@ services:
       - key: ADMIN_URL
         value: https://esonoya-admin.onrender.com
       - key: SANCTUM_STATEFUL_DOMAINS
-        value: esonoya-citizen.onrender.com,esonoya-admin.onrender.com
+        value: esonoya-admin.onrender.com
       - key: QR_SECRET_KEY
         generateValue: true
 
