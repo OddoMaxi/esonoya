@@ -32,6 +32,7 @@ RUN apk add --no-cache \
         curl \
     && apk add --no-cache --virtual .build-deps \
         $PHPIZE_DEPS \
+        oniguruma-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j"$(nproc)" \
         pdo_pgsql \
