@@ -15,6 +15,5 @@ tests/
 phpunit.xml
 .pint.json
 .editorconfig
-docker/
 .github/
 Makefile
