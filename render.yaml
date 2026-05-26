@@ -69,7 +69,7 @@ services:
     envVars:
       - fromGroup: esonoya-laravel
       - key: APP_KEY
-        generateValue: true
+        sync: false
       - key: APP_URL
         value: https://esonoya-api.onrender.com
       # PostgreSQL
