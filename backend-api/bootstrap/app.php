@@ -19,8 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // Laisse AuthenticationException remonter → rendu JSON 401
         $middleware->redirectGuestsTo(fn() => null);
 
-        // ─── SPA stateful + throttle API global ───────────────
-        $middleware->statefulApi();
+        // ─── Throttle API global ──────────────────────────────
+        // statefulApi() retiré : les deux frontends (citizen + admin)
+        // utilisent des Bearer tokens, pas des sessions/cookies Sanctum.
+        // Le CSRF stateful ne s'applique pas ici.
         $middleware->throttleApi();
 
         // ─── Middlewares globaux sur toutes les routes API ────
