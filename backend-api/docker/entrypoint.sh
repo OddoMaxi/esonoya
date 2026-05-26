@@ -13,6 +13,9 @@ for i in 1 2 3 4 5; do
   sleep 5
 done
 
+echo "[entrypoint] Seeding database..."
+php artisan db:seed --force --no-interaction
+
 if [ $# -gt 0 ]; then
   echo "[entrypoint] Running: $*"
   exec "$@"
