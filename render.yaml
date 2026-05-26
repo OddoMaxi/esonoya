@@ -1,5 +1,4 @@
 ## eSonoya — Render Blueprint
-## Déploie tous les services depuis le dashboard Render en un clic.
 ## Docs : https://render.com/docs/blueprint-spec
 
 envVarGroups:
@@ -73,7 +72,7 @@ services:
         generateValue: true
       - key: APP_URL
         value: https://esonoya-api.onrender.com
-      # Base de données PostgreSQL
+      # PostgreSQL
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_HOST
@@ -96,33 +95,21 @@ services:
         fromDatabase:
           name: esonoya-postgres
           property: password
-      # Redis
-      - key: REDIS_HOST
+      # Redis — connectionString contient host + password + port
+      - key: REDIS_URL
         fromService:
           name: esonoya-redis
           type: redis
-          property: host
-      - key: REDIS_PASSWORD
-        fromService:
-          name: esonoya-redis
-          type: redis
-          property: password
-      - key: REDIS_PORT
-        fromService:
-          name: esonoya-redis
-          type: redis
-          property: port
-      # Session domain Render
+          property: connectionString
+      # CORS
       - key: SESSION_DOMAIN
         value: .onrender.com
-      # CORS
       - key: FRONTEND_URL
         value: https://esonoya-citizen.onrender.com
       - key: ADMIN_URL
         value: https://esonoya-admin.onrender.com
       - key: SANCTUM_STATEFUL_DOMAINS
         value: esonoya-citizen.onrender.com,esonoya-admin.onrender.com
-      # Secrets
       - key: QR_SECRET_KEY
         generateValue: true
 
@@ -133,7 +120,7 @@ services:
     dockerfilePath: ./backend-api/Dockerfile
     dockerContext: ./backend-api
     plan: free
-    startCommand: php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600 --memory=256 --queue=default,notifications,reminders
+    dockerCommand: php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600 --memory=256 --queue=default,notifications,reminders
     envVars:
       - fromGroup: esonoya-laravel
       - key: APP_KEY
@@ -165,21 +152,11 @@ services:
         fromDatabase:
           name: esonoya-postgres
           property: password
-      - key: REDIS_HOST
+      - key: REDIS_URL
         fromService:
           name: esonoya-redis
           type: redis
-          property: host
-      - key: REDIS_PASSWORD
-        fromService:
-          name: esonoya-redis
-          type: redis
-          property: password
-      - key: REDIS_PORT
-        fromService:
-          name: esonoya-redis
-          type: redis
-          property: port
+          property: connectionString
       - key: QR_SECRET_KEY
         fromService:
           name: esonoya-api
@@ -223,6 +200,7 @@ services:
     name: esonoya-redis
     plan: free
     maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
 
 # ─── PostgreSQL ───────────────────────────────────────────────────────────────
 databases:
