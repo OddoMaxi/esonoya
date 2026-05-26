@@ -1,0 +1,143 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - "v*"
+
+# Prevent concurrent deployments
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/esonoya
+
+jobs:
+  # ─── Build & Push Docker Images ─────────────────────────────────────────────
+  build:
+    name: Build images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      image-tag: ${{ steps.meta.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-api
+          tags: |
+            type=sha,prefix=sha-,format=short
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+
+      # API
+      - name: Build & push API
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend-api
+          target: production
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-api:${{ steps.meta.outputs.version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-api:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Citizen frontend
+      - name: Build & push citizen
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend-citizen
+          target: runner
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-citizen:${{ steps.meta.outputs.version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-citizen:latest
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Admin dashboard
+      - name: Build & push admin
+        uses: docker/build-push-action@v5
+        with:
+          context: ./admin-dashboard
+          target: runner
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-admin:${{ steps.meta.outputs.version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-admin:latest
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ─── Deploy to Production Server ────────────────────────────────────────────
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: build
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/esonoya
+
+            # Pull latest compose file
+            git pull origin main
+
+            # Log in to registry
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # Pull new images
+            docker compose pull
+
+            # Apply DB migrations before switching traffic
+            docker compose run --rm \
+              -e APP_ENV=production \
+              api php artisan migrate --force --no-interaction
+
+            # Rolling restart (zero-downtime with 2 replicas)
+            docker compose up -d --scale api=2 --no-recreate api
+            docker compose up -d --force-recreate worker scheduler citizen admin nginx
+
+            # Cleanup old images
+            docker image prune -f
+
+            echo "Deploy complete — $(date)"
+
+      - name: Health check
+        run: |
+          sleep 15
+          curl -sf https://api.esonoya.gov.gn/up || exit 1
+          echo "API health check passed"

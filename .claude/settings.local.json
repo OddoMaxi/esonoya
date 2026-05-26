@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem \"c:\\\\Users\\\\HP\\\\Documents\\\\esonoya\" | ForEach-Object { $_.Name })",
+      "PowerShell(docker info 2>&1)",
+      "PowerShell(php --version)",
+      "PowerShell(node --version)",
+      "PowerShell(npm --version)",
+      "Bash(xargs grep -l \"admin\\\\|login\\\\|Admin\")",
+      "Bash(xargs grep -l \"admin\\\\|Admin\")",
+      "Bash(taskkill /F /PID 39808 /PID 41564 /PID 16924 /PID 22480)",
+      "Bash(taskkill -F -PID 39808)",
+      "Bash(taskkill -F -PID 41564)",
+      "Bash(taskkill -F -PID 16924)",
+      "Bash(taskkill -F -PID 22480)",
+      "Bash(taskkill -F -PID 33968)",
+      "Bash(taskkill -F -PID 43248)",
+      "Bash(taskkill -F -PID 22672)",
+      "Bash(taskkill -F -PID 25492)",
+      "Bash(taskkill -F -PID 30012)",
+      "Bash(taskkill -F -PID 31384)",
+      "PowerShell(Stop-Process -Id 43248, 22672, 25492, 30012, 31384 -Force -ErrorAction SilentlyContinue)",
+      "Bash(git init *)"
+    ]
+  }
+}

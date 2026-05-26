@@ -1,0 +1,29 @@
+# Production environment files — NEVER commit real credentials
+.env.production
+.env.citizen.production
+.env.admin.production
+
+# SSL certificates
+nginx/ssl/
+
+# Docker volumes data (if mounted locally)
+data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Redis dump
+dump.rdb
+
+# Local dev env files
+**/.env.local
+**/.env.*.local
+
+# Storage tickets cache (generated PDFs)
+backend-api/storage/app/tickets/

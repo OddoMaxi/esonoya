@@ -1,0 +1,232 @@
+## eSonoya — Render Blueprint
+## Déploie tous les services depuis le dashboard Render en un clic.
+## Docs : https://render.com/docs/blueprint-spec
+
+envVarGroups:
+  - name: esonoya-laravel
+    envVars:
+      - key: APP_NAME
+        value: eSonoya
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_TIMEZONE
+        value: Africa/Conakry
+      - key: APP_LOCALE
+        value: fr
+      - key: LOG_LEVEL
+        value: warning
+      - key: SESSION_DRIVER
+        value: redis
+      - key: SESSION_LIFETIME
+        value: "120"
+      - key: SESSION_ENCRYPT
+        value: "true"
+      - key: CACHE_STORE
+        value: redis
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: REDIS_CLIENT
+        value: phpredis
+      - key: SANCTUM_EXPIRATION
+        value: "10080"
+      - key: OTP_LENGTH
+        value: "6"
+      - key: OTP_EXPIRES_MINUTES
+        value: "10"
+      - key: OTP_MAX_ATTEMPTS
+        value: "5"
+      - key: TOKEN_CITIZEN_DAYS
+        value: "7"
+      - key: TOKEN_ADMIN_HOURS
+        value: "8"
+      - key: SMS_PROVIDER
+        value: interactgroup
+      - key: SMS_SENDER_ID
+        value: eSonoya
+      - key: SMS_RETRY_ATTEMPTS
+        value: "3"
+      - key: SMS_INTERACTGROUP_URL
+        value: http://sms.interactgroup.net/index.php
+      - key: SMS_USERNAME
+        sync: false
+      - key: SMS_TOKEN
+        sync: false
+      - key: REMINDER_HOURS_BEFORE
+        value: "24"
+
+services:
+
+  # ─── Backend API (Laravel 12 + PHP 8.3) ──────────────────────────────────────
+  - type: web
+    name: esonoya-api
+    runtime: docker
+    dockerfilePath: ./backend-api/Dockerfile
+    dockerContext: ./backend-api
+    healthCheckPath: /up
+    plan: free
+    autoDeploy: true
+    envVars:
+      - fromGroup: esonoya-laravel
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_URL
+        value: https://esonoya-api.onrender.com
+      # Base de données PostgreSQL
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: esonoya-postgres
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: esonoya-postgres
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: esonoya-postgres
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: esonoya-postgres
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: esonoya-postgres
+          property: password
+      # Redis
+      - key: REDIS_HOST
+        fromService:
+          name: esonoya-redis
+          type: redis
+          property: host
+      - key: REDIS_PASSWORD
+        fromService:
+          name: esonoya-redis
+          type: redis
+          property: password
+      - key: REDIS_PORT
+        fromService:
+          name: esonoya-redis
+          type: redis
+          property: port
+      # Session domain Render
+      - key: SESSION_DOMAIN
+        value: .onrender.com
+      # CORS
+      - key: FRONTEND_URL
+        value: https://esonoya-citizen.onrender.com
+      - key: ADMIN_URL
+        value: https://esonoya-admin.onrender.com
+      - key: SANCTUM_STATEFUL_DOMAINS
+        value: esonoya-citizen.onrender.com,esonoya-admin.onrender.com
+      # Secrets
+      - key: QR_SECRET_KEY
+        generateValue: true
+
+  # ─── Queue Worker ─────────────────────────────────────────────────────────────
+  - type: worker
+    name: esonoya-worker
+    runtime: docker
+    dockerfilePath: ./backend-api/Dockerfile
+    dockerContext: ./backend-api
+    plan: free
+    startCommand: php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600 --memory=256 --queue=default,notifications,reminders
+    envVars:
+      - fromGroup: esonoya-laravel
+      - key: APP_KEY
+        fromService:
+          name: esonoya-api
+          type: web
+          envVarKey: APP_KEY
+      - key: APP_URL
+        value: https://esonoya-api.onrender.com
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: esonoya-postgres
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: esonoya-postgres
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: esonoya-postgres
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: esonoya-postgres
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: esonoya-postgres
+          property: password
+      - key: REDIS_HOST
+        fromService:
+          name: esonoya-redis
+          type: redis
+          property: host
+      - key: REDIS_PASSWORD
+        fromService:
+          name: esonoya-redis
+          type: redis
+          property: password
+      - key: REDIS_PORT
+        fromService:
+          name: esonoya-redis
+          type: redis
+          property: port
+      - key: QR_SECRET_KEY
+        fromService:
+          name: esonoya-api
+          type: web
+          envVarKey: QR_SECRET_KEY
+
+  # ─── Frontend Citoyen (Next.js) ───────────────────────────────────────────────
+  - type: web
+    name: esonoya-citizen
+    runtime: docker
+    dockerfilePath: ./frontend-citizen/Dockerfile
+    dockerContext: ./frontend-citizen
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://esonoya-api.onrender.com/api
+      - key: NEXT_PUBLIC_APP_URL
+        value: https://esonoya-citizen.onrender.com
+      - key: NEXT_PUBLIC_APP_NAME
+        value: eSonoya
+
+  # ─── Dashboard Admin (Next.js) ────────────────────────────────────────────────
+  - type: web
+    name: esonoya-admin
+    runtime: docker
+    dockerfilePath: ./admin-dashboard/Dockerfile
+    dockerContext: ./admin-dashboard
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://esonoya-api.onrender.com/api
+      - key: NEXT_PUBLIC_APP_URL
+        value: https://esonoya-admin.onrender.com
+      - key: NEXT_PUBLIC_APP_NAME
+        value: eSonoya Admin
+
+  # ─── Redis ────────────────────────────────────────────────────────────────────
+  - type: redis
+    name: esonoya-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+
+# ─── PostgreSQL ───────────────────────────────────────────────────────────────
+databases:
+  - name: esonoya-postgres
+    databaseName: esonoya
+    user: esonoya_user
+    plan: free

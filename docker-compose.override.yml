@@ -1,0 +1,72 @@
+# Dev overrides — applied automatically by `docker compose up`
+# Exposes ports, mounts source code for live editing, disables replicas.
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: ./backend-api
+      target: production
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend-api:/var/www/html
+      - /var/www/html/vendor
+    # Override healthcheck for faster local feedback
+    healthcheck:
+      start_period: 10s
+
+  worker:
+    environment:
+      APP_ENV: local
+    deploy:
+      replicas: 1
+
+  scheduler:
+    environment:
+      APP_ENV: local
+
+  citizen:
+    build:
+      context: ./frontend-citizen
+    command: npm run dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend-citizen:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      NODE_ENV: development
+
+  admin:
+    build:
+      context: ./admin-dashboard
+    command: npm run dev
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./admin-dashboard:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      NODE_ENV: development
+
+  postgres:
+    ports:
+      - "5432:5432"
+
+  pgbouncer:
+    ports:
+      - "5433:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  nginx:
+    ports:
+      - "80:80"

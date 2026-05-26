@@ -1,0 +1,35 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    environment: production
+    app: esonoya
+
+scrape_configs:
+  # API containers — PHP-FPM status
+  - job_name: api
+    static_configs:
+      - targets: ["api:8000"]
+    metrics_path: /fpm-status
+    params:
+      format: [prometheus]
+
+  # Node exporter — host CPU / RAM / disk
+  - job_name: node
+    static_configs:
+      - targets: ["node-exporter:9100"]
+
+  # PostgreSQL
+  - job_name: postgres
+    static_configs:
+      - targets: ["postgres-exporter:9187"]
+
+  # Redis
+  - job_name: redis
+    static_configs:
+      - targets: ["redis-exporter:9121"]
+
+  # Prometheus self-monitoring
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
