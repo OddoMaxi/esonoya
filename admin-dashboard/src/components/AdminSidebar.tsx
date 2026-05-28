@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
@@ -69,13 +70,8 @@ export function AdminSidebar() {
   return (
     <aside className="w-60 shrink-0 bg-blue-900 text-white flex flex-col min-h-screen">
       {/* Logo */}
-      <div className="px-5 py-4 border-b border-blue-800">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-white rounded-md flex items-center justify-center">
-            <span className="text-blue-900 font-bold text-xs">eS</span>
-          </div>
-          <span className="font-bold text-sm">eSonoya Admin</span>
-        </div>
+      <div className="px-4 py-4 border-b border-blue-800 flex items-center justify-center">
+        <Image src="/esonoya.png" alt="eSonoya" width={130} height={37} className="object-contain brightness-0 invert" />
       </div>
 
       {/* Nav */}
