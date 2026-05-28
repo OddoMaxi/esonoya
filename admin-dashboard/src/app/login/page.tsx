@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { LoginForm } from "./LoginForm";
+import { AppHeader } from "@/components/AppHeader";
+import { AppFooter } from "@/components/AppFooter";
 
 export const metadata: Metadata = {
   title: "Connexion administrateur — eSonoya",
@@ -7,32 +10,27 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-4">
-      {/* Logo */}
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 bg-blue-900 rounded-lg flex items-center justify-center">
-          <span className="text-white font-bold">eS</span>
-        </div>
-        <div>
-          <p className="font-bold text-blue-900 text-lg leading-tight">
-            eSonoya Admin
-          </p>
+    <div className="min-h-screen flex flex-col bg-gray-100">
+      <AppHeader />
+
+      <div className="flex-1 flex flex-col items-center justify-center px-4 py-10">
+        {/* Logo */}
+        <div className="flex flex-col items-center gap-2 mb-8">
+          <Image src="/esonoya.png" alt="eSonoya" width={180} height={52} className="object-contain" />
           <p className="text-xs text-gray-500">Espace administration</p>
         </div>
+
+        {/* Card */}
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-md border border-gray-200 p-8">
+          <h1 className="text-xl font-bold text-gray-900 mb-1">Connexion</h1>
+          <p className="text-sm text-gray-500 mb-6">
+            Accès réservé aux agents autorisés.
+          </p>
+          <LoginForm />
+        </div>
       </div>
 
-      {/* Card */}
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-md border border-gray-200 p-8">
-        <h1 className="text-xl font-bold text-gray-900 mb-1">Connexion</h1>
-        <p className="text-sm text-gray-500 mb-6">
-          Accès réservé aux agents autorisés.
-        </p>
-        <LoginForm />
-      </div>
-
-      <p className="text-xs text-gray-400 mt-6 text-center">
-        eSonoya — Direction Générale des Passeports · République de Guinée
-      </p>
+      <AppFooter />
     </div>
   );
 }
