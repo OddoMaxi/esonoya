@@ -28,7 +28,7 @@ const STATUS_STYLE: Record<AppointmentStatus, string> = {
 };
 
 const TYPE_LABEL: Record<string, string> = {
-  new:     "Nouveau passeport",
+  new:     "Première demande",
   renewal: "Renouvellement",
   duplicata: "Duplicata",
 };

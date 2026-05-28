@@ -49,14 +49,13 @@ export function Step2Receipt() {
         <ul className="text-xs text-blue-800 space-y-1 list-disc list-inside">
           <li>Sur le reçu remis par l&apos;agence bancaire agréée</li>
           <li>Format habituel : lettre(s) suivie(s) de chiffres</li>
-          <li>Ex : REC-2024-00123 ou GNF-456789</li>
         </ul>
       </div>
 
       <Input
         id="receipt_reference"
         label="Référence du reçu"
-        placeholder="Ex : REC-2024-00123"
+        placeholder=""
         autoComplete="off"
         autoFocus
         required

@@ -12,7 +12,7 @@ import { AppFooter } from "@/components/AppFooter";
 import type { Appointment, AppointmentStatus } from "@/types";
 
 const REQUEST_TYPE_LABEL: Record<string, string> = {
-  new:     "Nouveau passeport",
+  new:     "Première demande",
   renewal: "Renouvellement",
   duplicata: "Duplicata",
 };

@@ -13,7 +13,7 @@ const TYPES: {
 }[] = [
   {
     value: "new",
-    label: "Nouveau passeport",
+    label: "Première demande",
     desc: "Première demande — vous n'avez jamais eu de passeport guinéen.",
     icon: "🆕",
   },

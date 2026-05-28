@@ -127,7 +127,7 @@ export function Step8Confirmation() {
   };
 
   const REQUEST_TYPE_LABELS: Record<string, string> = {
-    new:     "Nouveau passeport",
+    new:     "Première demande",
     renewal: "Renouvellement",
     duplicata: "Duplicata",
   };

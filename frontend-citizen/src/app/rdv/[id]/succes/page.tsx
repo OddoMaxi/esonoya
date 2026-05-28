@@ -10,7 +10,7 @@ import { QrCode } from "@/components/QrCode";
 import type { Appointment } from "@/types";
 
 const REQUEST_TYPE_LABEL: Record<string, string> = {
-  new:     "Nouveau passeport",
+  new:     "Première demande",
   renewal: "Renouvellement",
   duplicata: "Duplicata",
 };
