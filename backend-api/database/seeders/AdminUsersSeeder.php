@@ -18,7 +18,7 @@ class AdminUsersSeeder extends Seeder
                 'name'     => 'Administrateur Principal',
                 'email'    => 'admin@esonoya.gov.gn',
                 'password' => Hash::make('eSonoya@2024!'),
-                'phone'    => '+224 624 000 000',
+                'phone'    => '+224 626 44 22 61',
                 'is_active' => true,
             ]
         );
@@ -34,7 +34,7 @@ class AdminUsersSeeder extends Seeder
                     'name'      => 'Admin Centre Conakry',
                     'email'     => 'conakry@esonoya.gov.gn',
                     'password'  => Hash::make('Conakry@2024!'),
-                    'phone'     => '+224 624 000 010',
+                    'phone'     => '+224 624 06 29 84',
                     'is_active'  => true,
                 ]
             );
