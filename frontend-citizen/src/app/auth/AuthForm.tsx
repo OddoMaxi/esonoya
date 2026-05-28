@@ -160,7 +160,7 @@ export function AuthForm({ redirect = "/tableau-de-bord" }: { redirect?: string 
             <span className="font-semibold">{phone}</span>
           </p>
           <p className="text-xs text-blue-600 mt-0.5">
-            Valable {expiresIn} minutes
+            Valable {Math.floor(expiresIn / 60)} minutes
           </p>
         </div>
 
