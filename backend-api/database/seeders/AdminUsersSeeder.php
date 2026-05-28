@@ -12,12 +12,10 @@ class AdminUsersSeeder extends Seeder
     public function run(): void
     {
         // Super Admin
-        $superAdmin = AdminUser::firstOrCreate(
+        $superAdmin = AdminUser::updateOrCreate(
             ['email' => 'admin@esonoya.gov.gn'],
             [
                 'name'     => 'Administrateur Principal',
-                'email'    => 'admin@esonoya.gov.gn',
-                'password' => Hash::make('eSonoya@2024!'),
                 'phone'    => '+224 626 44 22 61',
                 'is_active' => true,
             ]
@@ -27,13 +25,11 @@ class AdminUsersSeeder extends Seeder
         // Admin du centre de Conakry
         $centerConakry = Center::where('city', 'Conakry')->first();
         if ($centerConakry) {
-            $adminConakry = AdminUser::firstOrCreate(
+            $adminConakry = AdminUser::updateOrCreate(
                 ['email' => 'conakry@esonoya.gov.gn'],
                 [
                     'center_id' => $centerConakry->id,
                     'name'      => 'Admin Centre Conakry',
-                    'email'     => 'conakry@esonoya.gov.gn',
-                    'password'  => Hash::make('Conakry@2024!'),
                     'phone'     => '+224 624 06 29 84',
                     'is_active'  => true,
                 ]
