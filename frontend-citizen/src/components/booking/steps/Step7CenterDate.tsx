@@ -326,7 +326,8 @@ export function Step7CenterDate() {
   }, [selectedCenterId, setValue]);
 
   const onSubmit = (data: FormData) => {
-    update({ center_id: data.center_id, appointment_date: data.appointment_date });
+    const center = centers.find((c) => c.id === data.center_id);
+    update({ center_id: data.center_id, center_name: center?.name ?? "", appointment_date: data.appointment_date });
     goNext();
   };
 

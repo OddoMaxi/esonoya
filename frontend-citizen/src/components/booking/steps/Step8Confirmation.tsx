@@ -35,6 +35,26 @@ const RELATIONSHIP_LABELS: Record<string, string> = {
   other:   "Autre",
 };
 
+// ─── Helpers fiche ────────────────────────────────────────────
+
+function FRow({ label, value, half }: { label: string; value?: string; half?: boolean }) {
+  return (
+    <tr className={half ? "w-1/2" : ""}>
+      <td className="border border-gray-400 px-2 py-1 text-xs text-gray-600 whitespace-nowrap bg-gray-50 w-40">{label}</td>
+      <td className="border border-gray-400 px-2 py-1 text-xs font-medium text-gray-900 min-w-0">{value ?? ""}</td>
+    </tr>
+  );
+}
+
+function CheckBox({ checked, label }: { checked: boolean; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 mr-4 text-xs">
+      <span className={`inline-block w-3 h-3 border border-gray-500 ${checked ? "bg-gray-800" : "bg-white"} flex-shrink-0`} />
+      {label}
+    </span>
+  );
+}
+
 // ─── Section récap ────────────────────────────────────────────
 
 function RecapRow({ label, value }: { label: string; value?: string }) {
@@ -142,49 +162,123 @@ export function Step8Confirmation() {
       </div>
 
       <div className="space-y-4">
-        {/* Récap demande */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            📋 Demande
-          </p>
-          <RecapRow label="Type" value={REQUEST_TYPE_LABELS[state.request_type]} />
-          <RecapRow label="Référence reçu" value={state.receipt_reference} />
-        </div>
 
-        {/* Récap identité */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            👤 Demandeur
-          </p>
-          <RecapRow
-            label="Nom complet"
-            value={`${state.first_name} ${state.last_name}`}
-          />
-          <RecapRow
-            label="Date de naissance"
-            value={state.birth_date ? formatDate(state.birth_date) : undefined}
-          />
-          <RecapRow label="Lieu de naissance" value={state.birth_place} />
-          <RecapRow label="Nationalité" value={state.nationality} />
-          <RecapRow label="Genre" value={state.gender === "M" ? "Masculin" : "Féminin"} />
-          <RecapRow label="Téléphone" value={state.phone} />
-          {state.email && <RecapRow label="Email" value={state.email} />}
-        </div>
+        {/* ── Fiche DEMANDE DE PASSEPORT ── */}
+        <div className="bg-white border border-gray-300 rounded-lg overflow-hidden text-xs">
 
-        {/* Récap RDV */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-          <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-3">
-            📅 Rendez-vous
-          </p>
-          <RecapRow label="Centre" value={state.center_id} />
-          <RecapRow
-            label="Date"
-            value={
-              state.appointment_date
-                ? formatDate(state.appointment_date)
-                : undefined
-            }
-          />
+          {/* En-tête */}
+          <div className="flex">
+            <div className="flex-1 bg-gray-700 text-white text-center font-bold tracking-widest py-2 text-sm uppercase">
+              Demande de Passeport
+            </div>
+            <div className="w-20 border-l border-gray-400 flex items-center justify-center text-gray-400 font-semibold text-xs">
+              PHOTO
+            </div>
+          </div>
+
+          {/* Éléments de la demande */}
+          <div className="border-t border-gray-400">
+            <div className="px-2 py-1 font-bold text-xs border-b border-gray-300 bg-gray-50">
+              Éléments de la demande
+            </div>
+            <table className="w-full border-collapse">
+              <tbody>
+                <tr>
+                  <td className="border border-gray-400 px-2 py-1 bg-gray-50 text-xs text-gray-600 whitespace-nowrap w-40">Type de la demande*</td>
+                  <td className="border border-gray-400 px-2 py-1">
+                    <CheckBox checked={state.request_type === "new"}       label="Première demande" />
+                    <CheckBox checked={state.request_type === "renewal"}   label="Renouvellement" />
+                    <CheckBox checked={state.request_type === "duplicata"} label="Duplicata" />
+                  </td>
+                </tr>
+                <FRow label="Numéro de Récépissé*" value={state.receipt_reference} />
+              </tbody>
+            </table>
+          </div>
+
+          {/* Informations personnelles */}
+          <div className="border-t border-gray-400">
+            <div className="px-2 py-1 font-bold text-xs border-b border-gray-300 bg-gray-50">
+              Informations personnelles <span className="font-normal text-gray-500">(en lettres capitales)</span>
+            </div>
+            <table className="w-full border-collapse">
+              <tbody>
+                <FRow label="b) Prénoms*" value={state.first_name?.toUpperCase()} />
+                <FRow label="c) Nom*" value={state.last_name?.toUpperCase()} />
+                <FRow label="d) Date de naissance*" value={state.birth_date ? formatDate(state.birth_date) : ""} />
+                <FRow label="e) Lieu de naissance*" value={state.birth_place} />
+                <tr>
+                  <td className="border border-gray-400 px-2 py-1 bg-gray-50 text-xs text-gray-600 w-40">f) Nationalité d'origine*</td>
+                  <td className="border border-gray-400 px-2 py-1 text-xs">
+                    <span className="flex justify-between items-center">
+                      <span className="font-medium">{state.nationality}</span>
+                      <span className="ml-4 whitespace-nowrap">
+                        k) Sexe* :&nbsp;
+                        <CheckBox checked={state.gender === "M"} label="Masculin" />
+                        <CheckBox checked={state.gender === "F"} label="Féminin" />
+                      </span>
+                    </span>
+                  </td>
+                </tr>
+                <FRow label="h) Profession*" value={state.profession} />
+                <FRow label="i) Domicile*" value={state.address} />
+                <tr>
+                  <td className="border border-gray-400 px-2 py-1 bg-gray-50 text-xs text-gray-600 w-40">j) Situation Matrimoniale*</td>
+                  <td className="border border-gray-400 px-2 py-1">
+                    <CheckBox checked={state.marital_status === "single"}   label="Célibataire" />
+                    <CheckBox checked={state.marital_status === "married"}  label="Marié(e)" />
+                    <CheckBox checked={state.marital_status === "widowed"}  label="Veuf(veuve)" />
+                    <CheckBox checked={state.marital_status === "divorced"} label="Divorcé(e)" />
+                  </td>
+                </tr>
+                <FRow label="Téléphone" value={state.phone} />
+                {state.email && <FRow label="Email" value={state.email} />}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Signalement */}
+          <div className="border-t border-gray-400">
+            <div className="px-2 py-1 font-bold text-xs border-b border-gray-300 bg-gray-50">Signalement</div>
+            <table className="w-full border-collapse">
+              <tbody>
+                <tr>
+                  <td className="border border-gray-400 px-2 py-1 bg-gray-50 text-xs text-gray-600 w-40">a) Taille (cm)</td>
+                  <td className="border border-gray-400 px-2 py-1 text-xs font-medium">{state.height_cm ?? ""}</td>
+                </tr>
+                <FRow label="b) Signes particuliers" value={state.distinctive_signs} />
+                <FRow label="e) Couleur des yeux"   value={state.eye_color} />
+              </tbody>
+            </table>
+          </div>
+
+          {/* Informations ascendants */}
+          <div className="border-t border-gray-400">
+            <div className="px-2 py-1 font-bold text-xs border-b border-gray-300 bg-gray-50">Informations ascendants</div>
+            <table className="w-full border-collapse">
+              <tbody>
+                <FRow label="PÈRE — Prénoms" value={state.father_first_name} />
+                <FRow label="PÈRE — Nom"     value={state.father_last_name} />
+                <FRow label="MÈRE — Prénoms" value={state.mother_first_name} />
+                <FRow label="MÈRE — Nom"     value={state.mother_last_name} />
+              </tbody>
+            </table>
+          </div>
+
+          {/* Rendez-vous */}
+          <div className="border-t border-gray-400">
+            <div className="px-2 py-1 font-bold text-xs border-b border-gray-300 bg-blue-50 text-blue-800">
+              📅 Rendez-vous
+            </div>
+            <table className="w-full border-collapse">
+              <tbody>
+                <FRow label="Centre"          value={state.center_name} />
+                <FRow label="Date du RDV"     value={state.appointment_date ? formatDate(state.appointment_date) : ""} />
+              </tbody>
+            </table>
+          </div>
+
+          <p className="px-3 py-2 text-gray-400 italic">* Remplissez tous les champs</p>
         </div>
 
         {/* Formulaire déclarant (si pour autrui) */}

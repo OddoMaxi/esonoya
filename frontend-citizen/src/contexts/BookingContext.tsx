@@ -48,6 +48,7 @@ export interface BookingState {
   mother_first_name: string;
   // Étape 7 — Centre et date
   center_id: string;
+  center_name: string;
   appointment_date: string;
   quota_id: string;
   // Étape 8 — Déclarant (si booking_for = 'other')
@@ -89,6 +90,7 @@ const initialState: BookingState = {
   mother_last_name: "",
   mother_first_name: "",
   center_id: "",
+  center_name: "",
   appointment_date: "",
   quota_id: "",
   declarant: null,
