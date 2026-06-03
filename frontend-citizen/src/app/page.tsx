@@ -45,8 +45,8 @@ export default function HomePage() {
             Service officiel — République de Guinée
           </span>
           <h1 className="text-3xl sm:text-5xl font-bold leading-tight mb-4">
-            Votre passeport guinéen,<br />
-            <span className="text-yellow-300">en ligne et sans file d&apos;attente</span>
+            Votre Processus de demande de passeport guinéen<br />
+            <span className="text-yellow-300">dématérialisé</span>
           </h1>
           <p className="text-blue-200 text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
             Prenez rendez-vous dans un centre agréé, préparez votre dossier et
