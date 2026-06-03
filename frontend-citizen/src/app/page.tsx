@@ -42,7 +42,7 @@ export default function HomePage() {
       <section className="bg-gradient-to-br from-blue-950 to-blue-800 text-white px-4 py-16">
         <div className="max-w-4xl mx-auto text-center">
           <span className="inline-block bg-white/10 border border-white/20 text-xs font-semibold tracking-widest uppercase px-3 py-1 rounded-full mb-6">
-            Direction Centrale de la Police aux Frontières (DCPAF) — République de Guinée
+            Direction Centrale de la Police aux Frontières (DCPAF)
           </span>
           <h1 className="text-3xl sm:text-5xl font-bold leading-tight mb-4">
             Votre Processus de demande de passeport guinéen<br />
