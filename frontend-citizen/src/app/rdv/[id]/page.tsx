@@ -163,12 +163,11 @@ export default function AppointmentDetailPage() {
           <p className="text-sm font-semibold text-amber-900 mb-2">Documents à apporter le jour J :</p>
           <ul className="text-sm text-amber-800 space-y-1">
             <li>• Ce QR code (écran ou imprimé)</li>
-            <li>• Réçu de paiement original ({appt.receipt_reference})</li>
-            <li>• Pièce d'identité nationale en cours de validité</li>
-            <li>• Acte de naissance (original + copie certifiée)</li>
+            <li>• Acte de naissance original + copie certifiée</li>
             <li>• 2 photos d'identité (fond blanc, 4×4 cm)</li>
+            <li>• Réçu de paiement original ({appt.receipt_reference})</li>
             {appt.request_type === "renewal" && <li>• Ancien passeport (original)</li>}
-            {appt.request_type === "duplicata" && <li>• Déclaration de perte / vol (police)</li>}
+            {appt.request_type === "duplicata" && <li>• Déclaration de perte ou vol (police)</li>}
           </ul>
         </div>
 

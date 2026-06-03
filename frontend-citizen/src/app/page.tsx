@@ -85,10 +85,9 @@ export default function HomePage() {
                 icon: "🆕",
                 docs: [
                   "Acte de naissance original + copie certifiée",
-                  "Certificat de nationalité",
-                  "Pièce d'identité nationale en cours de validité",
                   "2 photos d'identité (fond blanc, 4×4 cm)",
                   "Réçu de paiement original",
+                  "Pièce d'identité des parents (uniquement pour les enfants de 0 à 17 ans)",
                 ],
               },
               {
@@ -96,10 +95,9 @@ export default function HomePage() {
                 icon: "🔄",
                 docs: [
                   "Ancien passeport (original)",
-                  "Acte de naissance original + copie certifiée",
-                  "Pièce d'identité nationale en cours de validité",
                   "2 photos d'identité (fond blanc, 4×4 cm)",
                   "Réçu de paiement original",
+                  "Pièce d'identité des parents (uniquement pour les enfants de 0 à 17 ans)",
                 ],
               },
               {
@@ -107,8 +105,6 @@ export default function HomePage() {
                 icon: "📋",
                 docs: [
                   "Déclaration de perte ou vol (police)",
-                  "Acte de naissance original + copie certifiée",
-                  "Pièce d'identité nationale en cours de validité",
                   "2 photos d'identité (fond blanc, 4×4 cm)",
                   "Réçu de paiement original",
                 ],

@@ -146,9 +146,9 @@ export default function SuccessPage() {
           <p className="font-semibold text-amber-900 mb-2">À apporter le jour du RDV :</p>
           <ul className="space-y-1 text-amber-800">
             <li>• Ce QR code (écran ou imprimé)</li>
+            <li>• Acte de naissance original + copie certifiée</li>
+            <li>• 2 photos d'identité (fond blanc, 4×4 cm)</li>
             <li>• Réçu de paiement original</li>
-            <li>• Pièce d'identité en cours de validité</li>
-            <li>• Acte de naissance (original + copie)</li>
           </ul>
         </div>
 
