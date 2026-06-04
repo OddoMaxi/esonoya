@@ -24,7 +24,7 @@ const schema = z.object({
     .min(1, "Téléphone obligatoire")
     .regex(/^(\+?224)?[6-7]\d{8}$/, "Format invalide. Ex : 621234567"),
   email:   z.string().email("Email invalide").or(z.literal("")).optional(),
-  address: z.string().max(255).optional(),
+  address: z.string().min(2, "Adresse obligatoire").max(255),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -61,7 +61,7 @@ export function Step3Identity() {
       gender:      data.gender,
       phone:       data.phone,
       email:       data.email ?? "",
-      address:     data.address ?? "",
+      address:     data.address,
     });
     goNext();
   };
@@ -173,8 +173,9 @@ export function Step3Identity() {
         <div className="mt-4">
           <Input
             id="address"
-            label="Adresse (optionnel)"
+            label="Adresse"
             placeholder="QUARTIER, COMMUNE, VILLE"
+            required
             uppercase
             error={errors.address?.message}
             {...register("address")}
