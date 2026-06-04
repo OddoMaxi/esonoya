@@ -69,60 +69,56 @@ export default function HomePage() {
         </div>
       </section>
 
-        {/* ── Documents requis ── */}
-      <section className="px-4 py-14 bg-white">
+      {/* ── Types de passeport ── */}
+      <section className="px-4 py-14">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">
-            Documents obligatoires
+            Types de passeport biométrique
           </h2>
           <p className="text-gray-500 text-center text-sm mb-8">
-            Préparez ces pièces avant votre rendez-vous.
+            La République de Guinée délivre trois types de passeports biométriques.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             {[
               {
-                title: "Première demande",
-                icon: "🆕",
-                docs: [
-                  "Acte de naissance original + copie certifiée",
-                  "2 photos d'identité (fond blanc, 4×4 cm)",
-                  "Réçu de paiement original",
-                  "Pièce d'identité des parents (uniquement pour les enfants de 0 à 17 ans)",
-                ],
+                color:   "bg-green-700",
+                border:  "border-green-200",
+                badge:   "bg-green-100 text-green-800",
+                type:    "Ordinaire",
+                color2:  "Vert",
+                desc:    "Délivré aux citoyens guinéens pour les déplacements internationaux à titre personnel.",
+                icon:    "🛂",
               },
               {
-                title: "Renouvellement",
-                icon: "🔄",
-                docs: [
-                  "Ancien passeport (original)",
-                  "2 photos d'identité (fond blanc, 4×4 cm)",
-                  "Réçu de paiement original",
-                  "Pièce d'identité des parents (uniquement pour les enfants de 0 à 17 ans)",
-                ],
+                color:   "bg-blue-700",
+                border:  "border-blue-200",
+                badge:   "bg-blue-100 text-blue-800",
+                type:    "De service",
+                color2:  "Bleu",
+                desc:    "Réservé aux agents de l'État en mission officielle à l'étranger.",
+                icon:    "🏛️",
               },
               {
-                title: "Duplicata",
-                icon: "📋",
-                docs: [
-                  "Déclaration de perte ou vol (police)",
-                  "2 photos d'identité (fond blanc, 4×4 cm)",
-                  "Réçu de paiement original",
-                ],
+                color:   "bg-red-700",
+                border:  "border-red-200",
+                badge:   "bg-red-100 text-red-800",
+                type:    "Diplomatique",
+                color2:  "Rouge",
+                desc:    "Attribué aux personnalités et diplomates habilités par l'État.",
+                icon:    "🎖️",
               },
-            ].map((cat) => (
-              <div key={cat.title} className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-2xl">{cat.icon}</span>
-                  <h3 className="font-bold text-amber-900 text-sm">{cat.title}</h3>
+            ].map((p) => (
+              <div key={p.type} className={`rounded-2xl border ${p.border} overflow-hidden shadow-sm`}>
+                <div className={`${p.color} px-5 py-6 text-white text-center`}>
+                  <div className="text-4xl mb-2">{p.icon}</div>
+                  <p className="font-bold text-lg">{p.type}</p>
+                  <span className={`inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full ${p.badge}`}>
+                    Couverture {p.color2}
+                  </span>
                 </div>
-                <ul className="space-y-2">
-                  {cat.docs.map((d) => (
-                    <li key={d} className="flex items-start gap-2 text-xs text-amber-800">
-                      <span className="text-amber-500 mt-0.5 flex-shrink-0">•</span>
-                      {d}
-                    </li>
-                  ))}
-                </ul>
+                <div className="px-5 py-4">
+                  <p className="text-sm text-gray-600 leading-relaxed">{p.desc}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -178,56 +174,60 @@ export default function HomePage() {
       </section>
 
 
-      {/* ── Types de passeport ── */}
-      <section className="px-4 py-14">
+      {/* ── Documents requis ── */}
+      <section className="px-4 py-14 bg-white">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">
-            Types de passeport biométrique
+            Documents obligatoires
           </h2>
           <p className="text-gray-500 text-center text-sm mb-8">
-            La République de Guinée délivre trois types de passeports biométriques.
+            Préparez ces pièces avant votre rendez-vous.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             {[
               {
-                color:   "bg-green-700",
-                border:  "border-green-200",
-                badge:   "bg-green-100 text-green-800",
-                type:    "Ordinaire",
-                color2:  "Vert",
-                desc:    "Délivré aux citoyens guinéens pour les déplacements internationaux à titre personnel.",
-                icon:    "🛂",
+                title: "Première demande",
+                icon: "🆕",
+                docs: [
+                  "Acte de naissance original + copie certifiée",
+                  "2 photos d'identité (fond blanc, 4×4 cm)",
+                  "Réçu de paiement original",
+                  "Pièce d'identité des parents (uniquement pour les enfants de 0 à 17 ans)",
+                ],
               },
               {
-                color:   "bg-blue-700",
-                border:  "border-blue-200",
-                badge:   "bg-blue-100 text-blue-800",
-                type:    "De service",
-                color2:  "Bleu",
-                desc:    "Réservé aux agents de l'État en mission officielle à l'étranger.",
-                icon:    "🏛️",
+                title: "Renouvellement",
+                icon: "🔄",
+                docs: [
+                  "Ancien passeport (original)",
+                  "2 photos d'identité (fond blanc, 4×4 cm)",
+                  "Réçu de paiement original",
+                  "Pièce d'identité des parents (uniquement pour les enfants de 0 à 17 ans)",
+                ],
               },
               {
-                color:   "bg-red-700",
-                border:  "border-red-200",
-                badge:   "bg-red-100 text-red-800",
-                type:    "Diplomatique",
-                color2:  "Rouge",
-                desc:    "Attribué aux personnalités et diplomates habilités par l'État.",
-                icon:    "🎖️",
+                title: "Duplicata",
+                icon: "📋",
+                docs: [
+                  "Déclaration de perte ou vol (police)",
+                  "2 photos d'identité (fond blanc, 4×4 cm)",
+                  "Réçu de paiement original",
+                ],
               },
-            ].map((p) => (
-              <div key={p.type} className={`rounded-2xl border ${p.border} overflow-hidden shadow-sm`}>
-                <div className={`${p.color} px-5 py-6 text-white text-center`}>
-                  <div className="text-4xl mb-2">{p.icon}</div>
-                  <p className="font-bold text-lg">{p.type}</p>
-                  <span className={`inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full ${p.badge}`}>
-                    Couverture {p.color2}
-                  </span>
+            ].map((cat) => (
+              <div key={cat.title} className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-2xl">{cat.icon}</span>
+                  <h3 className="font-bold text-amber-900 text-sm">{cat.title}</h3>
                 </div>
-                <div className="px-5 py-4">
-                  <p className="text-sm text-gray-600 leading-relaxed">{p.desc}</p>
-                </div>
+                <ul className="space-y-2">
+                  {cat.docs.map((d) => (
+                    <li key={d} className="flex items-start gap-2 text-xs text-amber-800">
+                      <span className="text-amber-500 mt-0.5 flex-shrink-0">•</span>
+                      {d}
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>
