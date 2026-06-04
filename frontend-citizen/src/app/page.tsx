@@ -243,18 +243,8 @@ export default function HomePage() {
           <p className="text-gray-500 text-center text-sm mb-8">
             Les documents varient selon votre situation.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             {[
-              {
-                title: "Pour les nationaux",
-                icon: "🇬🇳",
-                docs: [
-                  "Une copie de l'extrait d'acte de naissance numérisé et sécurisé",
-                  "Une autorisation parentale légalisée pour les mineurs",
-                  "Un reçu de paiement des droits de passeport",
-                  "Deux photos d'identité en fond blanc",
-                ],
-              },
               {
                 title: "Pour les naturalisés",
                 icon: "📜",
