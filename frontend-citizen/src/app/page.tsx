@@ -159,7 +159,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { step: "01", title: "Prise de rendez-vous", desc: "Réservez votre créneau en ligne via eSonoya." },
-              { step: "02", title: "Paiement des frais",   desc: "Effectuez le paiement au guichet agréé et conservez le reçu." },
+              { step: "02", title: "Paiement des frais (reçu bancaire)", desc: "Effectuez le paiement au guichet agréé et conservez le reçu." },
               { step: "03", title: "Enrôlement biométrique", desc: "Présentez-vous au centre le jour J avec vos documents." },
               { step: "04", title: "Retrait du passeport", desc: "Revenez récupérer votre passeport dans le délai choisi." },
             ].map((s) => (
@@ -224,6 +224,91 @@ export default function HomePage() {
                   {cat.docs.map((d) => (
                     <li key={d} className="flex items-start gap-2 text-xs text-amber-800">
                       <span className="text-amber-500 mt-0.5 flex-shrink-0">•</span>
+                      {d}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Pièces première demande ── */}
+      <section className="px-4 py-14 bg-gray-50 border-t border-gray-200">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">
+            Pièces à fournir pour la première demande de passeport
+          </h2>
+          <p className="text-gray-500 text-center text-sm mb-8">
+            Les documents varient selon votre situation.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {[
+              {
+                title: "Pour les nationaux",
+                icon: "🇬🇳",
+                docs: [
+                  "Une copie de l'extrait d'acte de naissance numérisé et sécurisé",
+                  "Une autorisation parentale légalisée pour les mineurs",
+                  "Un reçu de paiement des droits de passeport",
+                  "Deux photos d'identité en fond blanc",
+                ],
+              },
+              {
+                title: "Pour les naturalisés",
+                icon: "📜",
+                docs: [
+                  "Une copie du décret de naturalisation",
+                  "Une copie de l'extrait d'acte de naissance",
+                  "Une photocopie légalisée de la Carte Nationale d'Identité",
+                  "Un extrait légalisé d'acte de mariage (pour la femme mariée)",
+                  "Une autorisation parentale légalisée pour les mineurs",
+                  "Un certificat de nationalité sécurisé",
+                  "Un récépissé de paiement des droits de passeport",
+                  "Un certificat de résidence datant de moins de trois mois",
+                  "Deux photos d'identité en fond blanc",
+                ],
+              },
+              {
+                title: "Pour l'étranger adopté par un Guinéen",
+                icon: "👨‍👧",
+                docs: [
+                  "Un jugement d'adoption",
+                  "Un certificat de nationalité sécurisé",
+                  "Une copie de l'extrait d'acte de naissance",
+                  "Une photocopie légalisée de la Carte Nationale d'Identité",
+                  "Une autorisation parentale légalisée pour les mineurs",
+                  "Un certificat de nationalité guinéenne de l'adoptant",
+                  "Un récépissé de paiement des droits de passeport",
+                  "Un certificat de résidence datant de moins de trois mois",
+                  "Deux photos d'identité en fond blanc",
+                ],
+              },
+              {
+                title: "Pour la femme étrangère mariée avec un Guinéen",
+                icon: "💍",
+                docs: [
+                  "Une copie de l'extrait d'acte de naissance",
+                  "Une copie de l'extrait d'acte de mariage sécurisé",
+                  "Une copie du certificat de nationalité",
+                  "Une photocopie légalisée de la Carte Nationale d'Identité",
+                  "Un récépissé de paiement des droits de passeport",
+                  "Un certificat de nationalité de l'époux",
+                  "Un certificat de résidence datant de moins de trois mois",
+                  "Deux photos d'identité en fond blanc",
+                ],
+              },
+            ].map((cat) => (
+              <div key={cat.title} className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-2xl">{cat.icon}</span>
+                  <h3 className="font-bold text-gray-900 text-sm">{cat.title}</h3>
+                </div>
+                <ul className="space-y-2">
+                  {cat.docs.map((d) => (
+                    <li key={d} className="flex items-start gap-2 text-xs text-gray-600">
+                      <span className="text-blue-400 mt-0.5 flex-shrink-0">•</span>
                       {d}
                     </li>
                   ))}
