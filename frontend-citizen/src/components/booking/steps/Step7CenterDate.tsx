@@ -162,9 +162,7 @@ function Calendar({ quotaMap, selected, onSelect, minDate, maxDate }: CalendarPr
           // Slot count label
           let slotsLabel: string | null = null;
           if (isAvailable && quota) {
-            slotsLabel = quota.available_slots <= 9
-              ? String(quota.available_slots)
-              : "9+";
+            slotsLabel = String(quota.available_slots);
           }
 
           // Color logic

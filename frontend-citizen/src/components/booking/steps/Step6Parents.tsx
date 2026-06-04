@@ -26,10 +26,10 @@ export function Step6Parents() {
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      father_last_name:  state.father_last_name,
       father_first_name: state.father_first_name,
-      mother_last_name:  state.mother_last_name,
+      father_last_name:  state.father_last_name || state.last_name,
       mother_first_name: state.mother_first_name,
+      mother_last_name:  state.mother_last_name,
     },
   });
 
@@ -58,20 +58,20 @@ export function Step6Parents() {
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
-            id="father_last_name"
-            label="Nom du père"
-            placeholder="DIALLO"
-            uppercase
-            error={errors.father_last_name?.message}
-            {...register("father_last_name")}
-          />
-          <Input
             id="father_first_name"
             label="Prénom du père"
             placeholder="ALPHA"
             uppercase
             error={errors.father_first_name?.message}
             {...register("father_first_name")}
+          />
+          <Input
+            id="father_last_name"
+            label="Nom du père"
+            placeholder="DIALLO"
+            uppercase
+            error={errors.father_last_name?.message}
+            {...register("father_last_name")}
           />
         </div>
       </div>
@@ -83,20 +83,20 @@ export function Step6Parents() {
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
-            id="mother_last_name"
-            label="Nom de la mère"
-            placeholder="BALDE"
-            uppercase
-            error={errors.mother_last_name?.message}
-            {...register("mother_last_name")}
-          />
-          <Input
             id="mother_first_name"
             label="Prénom de la mère"
             placeholder="FATOUMATA"
             uppercase
             error={errors.mother_first_name?.message}
             {...register("mother_first_name")}
+          />
+          <Input
+            id="mother_last_name"
+            label="Nom de la mère"
+            placeholder="BALDE"
+            uppercase
+            error={errors.mother_last_name?.message}
+            {...register("mother_last_name")}
           />
         </div>
       </div>

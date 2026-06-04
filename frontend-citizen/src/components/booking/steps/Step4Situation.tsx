@@ -13,7 +13,7 @@ const schema = z.object({
     ["single", "married", "divorced", "widowed"],
     { message: "Sélectionnez une situation matrimoniale" }
   ),
-  profession: z.string().max(100).optional(),
+  profession: z.string().min(2, "Profession obligatoire").max(100),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -43,7 +43,7 @@ export function Step4Situation() {
   const onSubmit = (data: FormData) => {
     update({
       marital_status: data.marital_status,
-      profession:     data.profession ?? "",
+      profession:     data.profession,
     });
     goNext();
   };
@@ -72,8 +72,9 @@ export function Step4Situation() {
 
       <Input
         id="profession"
-        label="Profession (optionnel)"
+        label="Profession"
         placeholder="EX : ENSEIGNANT, COMMERÇANT, ÉTUDIANT…"
+        required
         uppercase
         error={errors.profession?.message}
         {...register("profession")}
