@@ -73,18 +73,8 @@ export function Step3Identity() {
       onNext={handleSubmit(onSubmit)}
       onPrev={goPrev}
     >
-      {/* Nom et Prénom */}
+      {/* Prénom et Nom */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input
-          id="last_name"
-          label="Nom de famille"
-          placeholder="DIALLO"
-          required
-          uppercase
-          autoComplete="family-name"
-          error={errors.last_name?.message}
-          {...register("last_name")}
-        />
         <Input
           id="first_name"
           label="Prénom(s)"
@@ -94,6 +84,16 @@ export function Step3Identity() {
           autoComplete="given-name"
           error={errors.first_name?.message}
           {...register("first_name")}
+        />
+        <Input
+          id="last_name"
+          label="Nom de famille"
+          placeholder="DIALLO"
+          required
+          uppercase
+          autoComplete="family-name"
+          error={errors.last_name?.message}
+          {...register("last_name")}
         />
       </div>
 
