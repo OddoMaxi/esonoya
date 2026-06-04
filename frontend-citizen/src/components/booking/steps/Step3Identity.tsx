@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { StepWrapper } from "@/components/booking/StepWrapper";
 import { useBooking } from "@/contexts/BookingContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const schema = z.object({
   last_name:   z.string().min(2, "Nom obligatoire (min. 2 caractères)").max(100),
@@ -31,6 +32,7 @@ type FormData = z.infer<typeof schema>;
 
 export function Step3Identity() {
   const { state, update, goNext, goPrev } = useBooking();
+  const { user } = useAuth();
 
   const {
     register,
@@ -45,7 +47,7 @@ export function Step3Identity() {
       birth_place: state.birth_place,
       nationality: state.nationality,
       gender:      state.gender as "M" | "F" | undefined,
-      phone:       state.phone,
+      phone:       state.phone || user?.phone || "",
       email:       state.email,
       address:     state.address,
     },
