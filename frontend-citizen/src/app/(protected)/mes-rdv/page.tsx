@@ -194,7 +194,7 @@ export default function MesRdvPage() {
             <p className="text-sm text-gray-500 mt-0.5">{appointments.length} dossier{appointments.length > 1 ? "s" : ""} au total</p>
           </div>
           <Link
-            href="/prendre-rdv"
+            href="/auth?redirect=/prendre-rdv"
             className="bg-blue-900 text-white text-sm font-medium px-4 py-2 rounded-xl hover:bg-blue-800 transition-colors whitespace-nowrap"
           >
             + Nouveau RDV
@@ -239,7 +239,7 @@ export default function MesRdvPage() {
                 <p className="font-medium text-gray-600">Aucun rendez-vous pour le moment</p>
                 <p className="text-sm mt-1">Prenez votre premier rendez-vous dès maintenant.</p>
                 <Link
-                  href="/prendre-rdv"
+                  href="/auth?redirect=/prendre-rdv"
                   className="mt-4 inline-block bg-blue-900 text-white text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-blue-800 transition-colors"
                 >
                   Prendre un rendez-vous

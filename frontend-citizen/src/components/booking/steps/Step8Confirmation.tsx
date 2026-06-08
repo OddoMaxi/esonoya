@@ -164,8 +164,9 @@ export function Step8Confirmation() {
       <div className="space-y-4">
 
         {/* ── Fiche DEMANDE DE PASSEPORT ── */}
-        <div className="bg-white border border-gray-300 rounded-lg overflow-hidden text-xs">
+        <div className="bg-white border border-gray-300 rounded-lg overflow-x-auto text-xs">
 
+          <div className="min-w-[480px]">
           {/* En-tête */}
           <div className="flex">
             <div className="flex-1 bg-gray-700 text-white text-center font-bold tracking-widest py-2 text-sm uppercase">
@@ -279,6 +280,7 @@ export function Step8Confirmation() {
           </div>
 
           <p className="px-3 py-2 text-gray-400 italic">* Remplissez tous les champs</p>
+          </div>{/* end min-w wrapper */}
         </div>
 
         {/* Formulaire déclarant (si pour autrui) */}

@@ -12,18 +12,18 @@ export default function HomePage() {
     <main className="flex flex-col min-h-screen bg-white">
 
       {/* ── Header ── */}
-      <header className="bg-white border-b border-gray-200 px-4 py-2 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Image src="/mspc.jpeg"   alt="MSPC"    width={52} height={52} className="object-contain rounded" />
-            <Image src="/dcpaf.jpg"   alt="DCPAF"   width={52} height={52} className="object-contain rounded" />
-            <Image src="/esonoya.png" alt="eSonoya" width={140} height={40} className="object-contain" />
+      <header className="bg-white border-b border-gray-200 px-3 py-2 sticky top-0 z-10">
+        <div className="max-w-5xl mx-auto flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5">
+            <Image src="/mspc.jpeg"   alt="MSPC"    width={40} height={40} className="object-contain rounded h-8 w-8 sm:h-11 sm:w-11" />
+            <Image src="/dcpaf.jpg"   alt="DCPAF"   width={40} height={40} className="object-contain rounded h-8 w-8 sm:h-11 sm:w-11" />
+            <Image src="/esonoya.png" alt="eSonoya" width={110} height={32} className="object-contain h-6 w-auto sm:h-9" />
           </div>
-          <div className="flex items-center gap-4">
-            <Image src="/branging.jpeg" alt="Guinée" width={80} height={32} className="object-contain" />
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Image src="/branging.jpeg" alt="Guinée" width={70} height={28} className="object-contain h-7 w-auto sm:h-9" />
             <Link
               href="/auth"
-              className="text-sm font-semibold text-white bg-blue-900 px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors"
+              className="text-xs sm:text-sm font-semibold text-white bg-blue-900 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg hover:bg-blue-800 transition-colors whitespace-nowrap"
             >
               Se connecter
             </Link>
@@ -39,29 +39,29 @@ export default function HomePage() {
       </div>
 
       {/* ── Hero ── */}
-      <section className="bg-gradient-to-br from-blue-950 to-blue-800 text-white px-4 py-16">
+      <section className="bg-gradient-to-br from-blue-950 to-blue-800 text-white px-4 py-12 sm:py-16">
         <div className="max-w-4xl mx-auto text-center">
-          <span className="inline-block bg-white/10 border border-white/20 text-xs font-semibold tracking-widest uppercase px-3 py-1 rounded-full mb-6">
+          <span className="inline-block bg-white/10 border border-white/20 text-[10px] sm:text-xs font-semibold tracking-wide sm:tracking-widest uppercase px-3 py-1 rounded-full mb-5 leading-snug max-w-xs sm:max-w-none">
             Direction Centrale de la Police aux Frontières (DCPAF)
           </span>
-          <h1 className="text-3xl sm:text-5xl font-bold leading-tight mb-4">
-            Votre Processus de demande de passeport guinéen<br />
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4 px-2">
+            Votre Processus de demande de passeport guinéen{" "}
             <span className="text-yellow-300">dématérialisé</span>
           </h1>
-          <p className="text-blue-200 text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-blue-200 text-sm sm:text-lg mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed px-2">
             Prenez rendez-vous dans un centre agréé, préparez votre dossier et
             recevez votre ticket numérique avec QR code — le tout depuis votre téléphone.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center px-4 sm:px-0">
             <Link
               href="/auth?redirect=/prendre-rdv"
-              className="inline-flex items-center justify-center gap-2 bg-yellow-400 text-blue-950 font-bold px-8 py-3.5 rounded-xl hover:bg-yellow-300 transition-colors text-base"
+              className="inline-flex items-center justify-center gap-2 bg-yellow-400 text-blue-950 font-bold px-6 sm:px-8 py-3.5 rounded-xl hover:bg-yellow-300 transition-colors text-sm sm:text-base"
             >
               📅 Prendre un rendez-vous
             </Link>
             <Link
               href="/auth"
-              className="inline-flex items-center justify-center gap-2 bg-white/10 border border-white/30 text-white font-semibold px-8 py-3.5 rounded-xl hover:bg-white/20 transition-colors text-base"
+              className="inline-flex items-center justify-center gap-2 bg-white/10 border border-white/30 text-white font-semibold px-6 sm:px-8 py-3.5 rounded-xl hover:bg-white/20 transition-colors text-sm sm:text-base"
             >
               Mon espace citoyen
             </Link>
@@ -147,25 +147,25 @@ export default function HomePage() {
         </div>
       </section> */}
 
- {/* ── Procédure ── */}
-      <section className="bg-blue-950 text-white px-4 py-14">
+      {/* ── Procédure ── */}
+      <section className="bg-blue-950 text-white px-4 py-12 sm:py-14">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-center mb-2">
+          <h2 className="text-xl sm:text-2xl font-bold text-center mb-2">
             Procédure de délivrance
           </h2>
-          <p className="text-blue-300 text-center text-sm mb-10">
+          <p className="text-blue-300 text-center text-sm mb-8 sm:mb-10">
             Suivez ces étapes pour obtenir votre passeport.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
             {[
               { step: "01", title: "Prise de rendez-vous", desc: "Réservez votre créneau en ligne via eSonoya." },
               { step: "02", title: "Paiement des frais (reçu bancaire)", desc: "Effectuez le paiement au guichet agréé et conservez le reçu." },
               { step: "03", title: "Enrôlement biométrique", desc: "Présentez-vous au centre le jour J avec vos documents." },
               { step: "04", title: "Retrait du passeport", desc: "Revenez récupérer votre passeport dans le délai choisi." },
             ].map((s) => (
-              <div key={s.step} className="flex flex-col gap-2">
-                <span className="text-4xl font-black text-yellow-400 opacity-80">{s.step}</span>
-                <h3 className="font-bold text-white text-sm">{s.title}</h3>
+              <div key={s.step} className="flex flex-col gap-1.5">
+                <span className="text-3xl sm:text-4xl font-black text-yellow-400 opacity-80">{s.step}</span>
+                <h3 className="font-bold text-white text-xs sm:text-sm leading-snug">{s.title}</h3>
                 <p className="text-blue-300 text-xs leading-relaxed">{s.desc}</p>
               </div>
             ))}

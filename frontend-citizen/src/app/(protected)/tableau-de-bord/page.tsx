@@ -38,7 +38,7 @@ export default function DashboardPage() {
         {/* Actions rapides */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
           <Link
-            href="/prendre-rdv"
+            href="/auth?redirect=/prendre-rdv"
             className="bg-blue-900 text-white rounded-xl p-5 hover:bg-blue-800 transition-colors"
           >
             <div className="text-2xl mb-2">📅</div>
