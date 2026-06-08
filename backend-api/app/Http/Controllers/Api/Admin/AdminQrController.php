@@ -36,6 +36,50 @@ class AdminQrController extends Controller
     }
 
     /**
+     * POST /api/admin/scan-by-reference
+     * Validation manuelle par numéro de référence (ex : GN0RW2JX).
+     */
+    public function scanByReference(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'reference' => ['required', 'string', 'max:20'],
+        ]);
+
+        $ref = strtoupper(trim($data['reference']));
+
+        $appointment = PassportRequest::where('reference_number', $ref)->first();
+
+        if (! $appointment) {
+            QrScanLog::create([
+                'passport_request_id' => null,
+                'scanned_by'          => $request->user()->id,
+                'raw_token'           => $ref,
+                'scan_result'         => QrScanLog::RESULT_NOT_FOUND,
+                'ip_address'          => $request->ip(),
+                'user_agent'          => substr($request->userAgent() ?? '', 0, 500),
+                'scan_mode'           => 'reference',
+            ]);
+
+            return response()->json([
+                'valid'       => false,
+                'result_code' => 'not_found',
+                'message'     => "Référence « {$ref} » introuvable dans le système.",
+            ], 422);
+        }
+
+        // Réutiliser processScan avec le qr_token réel de ce RDV
+        $result = $this->qrCodeService->processScan(
+            rawToken:    $appointment->qr_token,
+            adminUserId: $request->user()->id,
+            ip:          $request->ip(),
+            userAgent:   $request->userAgent() ?? '',
+            mode:        'reference',
+        );
+
+        return response()->json($result->toArray(), $result->valid ? 200 : 422);
+    }
+
+    /**
      * GET /api/admin/scan-history
      * Historique des scans avec pagination.
      */

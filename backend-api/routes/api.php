@@ -108,10 +108,12 @@ Route::prefix('admin')->middleware(['auth:admin'])->group(function () {
     Route::get('appointments/{appointment}/pdf',     [AdminAppointmentController::class, 'downloadPdf']);
 
     // ─ QR Code / Scan ─
-    Route::post('scan-qr',           [AdminQrController::class, 'scan'])
+    Route::post('scan-qr',              [AdminQrController::class, 'scan'])
         ->middleware('permission:scan.qr');
-    Route::get('scan-history',       [AdminQrController::class, 'history']);
-    Route::get('scan-history/stats', [AdminQrController::class, 'stats']);
+    Route::post('scan-by-reference',    [AdminQrController::class, 'scanByReference'])
+        ->middleware('permission:scan.qr');
+    Route::get('scan-history',          [AdminQrController::class, 'history']);
+    Route::get('scan-history/stats',    [AdminQrController::class, 'stats']);
 
     // ─ Utilisateurs admin ─
     Route::apiResource('users', AdminUserController::class)

@@ -37,7 +37,8 @@ interface TodayStats {
   invalid: number;
 }
 
-type Tab = "scanner" | "history";
+type Tab  = "scanner" | "history";
+type Mode = "hid" | "camera" | "file" | "reference";
 
 const RESULT_CONFIG: Record<string, { label: string; color: string }> = {
   success:           { label: "Succès",          color: "bg-green-100 text-green-700" },
@@ -88,7 +89,7 @@ export default function ScanQrPage() {
 // ─── Onglet Scanner ───────────────────────────────────────────
 
 function ScannerTab() {
-  const [mode, setMode]         = useState<"hid" | "camera" | "file">("hid");
+  const [mode, setMode]         = useState<Mode>("hid");
   const [result, setResult]     = useState<ScanResult | null>(null);
   const [scanning, setScanning] = useState(false);
   const [todayStats, setTodayStats] = useState<TodayStats | null>(null);
@@ -122,6 +123,25 @@ function ScannerTab() {
     }
   }, [loadStats, sound]);
 
+  const submitByReference = useCallback(async (reference: string) => {
+    if (!reference.trim()) return;
+    setScanning(true);
+    setResult(null);
+    try {
+      const { data } = await api.post<ScanResult>("/admin/scan-by-reference", {
+        reference: reference.trim().toUpperCase(),
+      });
+      setResult(data);
+      loadStats();
+      if (sound) playSound(data.valid && !data.already_scanned ? "success" : "error");
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Erreur de connexion.";
+      setResult({ valid: false, message: msg });
+    } finally {
+      setScanning(false);
+    }
+  }, [loadStats, sound]);
+
   return (
     <div className="space-y-5">
       {/* Stats du jour */}
@@ -142,16 +162,17 @@ function ScannerTab() {
       )}
 
       {/* Sélecteur mode */}
-      <div className="bg-white rounded-xl border border-gray-200 p-1 flex gap-1">
+      <div className="bg-white rounded-xl border border-gray-200 p-1 grid grid-cols-2 sm:grid-cols-4 gap-1">
         {([
-          { id: "hid",    label: "⌨️ Lecteur HID",  desc: "Scanner USB" },
-          { id: "camera", label: "📷 Caméra",        desc: "Webcam / Mobile" },
-          { id: "file",   label: "🖼️ Photo",         desc: "Fichier image" },
+          { id: "hid",       label: "⌨️ Lecteur HID",   desc: "Scanner USB" },
+          { id: "camera",    label: "📷 Caméra",         desc: "Webcam / Mobile" },
+          { id: "file",      label: "🖼️ Photo",          desc: "Fichier image" },
+          { id: "reference", label: "✏️ Code manuel",    desc: "Ex : GN0RW2JX" },
         ] as const).map((m) => (
           <button
             key={m.id}
-            onClick={() => setMode(m.id)}
-            className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-medium transition-colors text-center ${
+            onClick={() => { setMode(m.id); setResult(null); }}
+            className={`py-2.5 px-3 rounded-lg text-sm font-medium transition-colors text-center ${
               mode === m.id
                 ? "bg-blue-900 text-white shadow-sm"
                 : "text-gray-600 hover:bg-gray-50"
@@ -164,9 +185,10 @@ function ScannerTab() {
       </div>
 
       {/* Interface de scan selon le mode */}
-      {mode === "hid"    && <HidInput     onScan={(t) => submit(t, "manual")}  scanning={scanning} />}
-      {mode === "camera" && <CameraScanner onScan={(t) => submit(t, "camera")} scanning={scanning} />}
-      {mode === "file"   && <FileScanner  onScan={(t) => submit(t, "file")}   scanning={scanning} />}
+      {mode === "hid"       && <HidInput        onScan={(t) => submit(t, "manual")}    scanning={scanning} />}
+      {mode === "camera"    && <CameraScanner   onScan={(t) => submit(t, "camera")}    scanning={scanning} />}
+      {mode === "file"      && <FileScanner     onScan={(t) => submit(t, "file")}      scanning={scanning} />}
+      {mode === "reference" && <ReferenceInput  onScan={submitByReference}             scanning={scanning} />}
 
       {/* Son */}
       <label className="flex items-center gap-2 text-sm text-gray-500 cursor-pointer select-none">
@@ -246,6 +268,72 @@ function HidInput({ onScan, scanning }: { onScan: (token: string) => void; scann
       <p className="text-xs text-gray-400 text-center">
         Raccourci : le lecteur envoie automatiquement Entrée après le scan
       </p>
+    </div>
+  );
+}
+
+// ─── Mode Saisie manuelle (référence) ────────────────────────
+
+function ReferenceInput({ onScan, scanning }: { onScan: (reference: string) => void; scanning: boolean }) {
+  const [value, setValue] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!scanning) inputRef.current?.focus();
+  }, [scanning]);
+
+  const handleSubmit = () => {
+    const ref = value.trim().toUpperCase();
+    if (ref.length < 3) return;
+    onScan(ref);
+    setValue("");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleSubmit();
+  };
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
+      <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-100">
+        <span className="text-3xl">✏️</span>
+        <div>
+          <p className="font-semibold text-blue-900 text-sm">Saisie manuelle du code ticket</p>
+          <p className="text-xs text-blue-700 mt-0.5">
+            Entrez le numéro de référence figurant sur le ticket du citoyen.
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+          Numéro de référence
+        </label>
+        <div className="flex gap-2">
+          <input
+            ref={inputRef}
+            type="text"
+            value={value}
+            onChange={(e) => setValue(e.target.value.toUpperCase())}
+            onKeyDown={handleKeyDown}
+            placeholder="GN0RW2JX"
+            maxLength={12}
+            className="input flex-1 font-mono text-lg tracking-widest text-center uppercase"
+            autoFocus
+            disabled={scanning}
+          />
+          <button
+            onClick={handleSubmit}
+            disabled={value.trim().length < 3 || scanning}
+            className="px-5 py-2.5 bg-blue-900 text-white font-semibold rounded-xl hover:bg-blue-800 disabled:opacity-40 transition-colors whitespace-nowrap"
+          >
+            {scanning ? "Vérification…" : "✓ Valider"}
+          </button>
+        </div>
+        <p className="text-xs text-gray-400 mt-2 text-center">
+          Le code est imprimé en haut du ticket (ex : <span className="font-mono">GN0RW2JX</span>)
+        </p>
+      </div>
     </div>
   );
 }
