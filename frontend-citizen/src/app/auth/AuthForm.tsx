@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -41,8 +41,15 @@ export function AuthForm({ redirect = "/tableau-de-bord" }: { redirect?: string 
   const [serverError, setServerError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
+
+  // Si déjà connecté, rediriger directement sans redemander le login
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.replace(redirect);
+    }
+  }, [authLoading, isAuthenticated, redirect, router]);
 
   // ── Formulaire téléphone ──
   const phoneForm = useForm<PhoneData>({

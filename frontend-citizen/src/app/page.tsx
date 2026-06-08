@@ -54,7 +54,7 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
-              href="/prendre-rdv"
+              href="/auth?redirect=/prendre-rdv"
               className="inline-flex items-center justify-center gap-2 bg-yellow-400 text-blue-950 font-bold px-8 py-3.5 rounded-xl hover:bg-yellow-300 transition-colors text-base"
             >
               📅 Prendre un rendez-vous
@@ -319,7 +319,7 @@ export default function HomePage() {
             Réservez votre créneau maintenant — gratuit, simple et sans déplacement.
           </p>
           <Link
-            href="/prendre-rdv"
+            href="/auth?redirect=/prendre-rdv"
             className="inline-flex items-center gap-2 bg-blue-900 text-white font-bold px-10 py-4 rounded-xl hover:bg-blue-800 transition-colors text-base shadow-lg"
           >
             📅 PRENDRE RENDEZ-VOUS
