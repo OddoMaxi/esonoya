@@ -21,9 +21,16 @@ export default function DashboardPage() {
         maxWidth="max-w-3xl"
         actions={
           <>
-            <span className="text-sm text-gray-600 hidden sm:block">{user?.phone}</span>
-            <button onClick={handleLogout} className="text-sm text-red-600 hover:text-red-800 font-medium">
-              Déconnexion
+            <div className="hidden sm:flex items-center gap-1.5 bg-gray-100 rounded-full px-3 py-1">
+              <span className="text-xs text-gray-400">👤</span>
+              <span className="text-xs font-medium text-gray-700">{user?.phone}</span>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 text-xs font-semibold text-red-600 bg-red-50 border border-red-100 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors"
+            >
+              <span>↩</span>
+              <span className="hidden sm:inline">Déconnexion</span>
             </button>
           </>
         }

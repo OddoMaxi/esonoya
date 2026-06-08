@@ -25,9 +25,9 @@ export function AppFooter() {
         <Image
           src="/simandou2040.png"
           alt="Simandou 2040"
-          width={110}
-          height={55}
-          className="object-contain flex-shrink-0 h-12 w-auto"
+          width={180}
+          height={90}
+          className="object-contain flex-shrink-0 h-16 sm:h-24 w-auto"
         />
       </div>
     </footer>
