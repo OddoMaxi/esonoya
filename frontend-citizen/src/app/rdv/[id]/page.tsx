@@ -31,8 +31,9 @@ export default function AppointmentDetailPage() {
 
   const [appt, setAppt]           = useState<Appointment | null>(null);
   const [loading, setLoading]     = useState(true);
-  const [cancelling, setCancelling] = useState(false);
-  const [downloading, setDownloading] = useState(false);
+  const [cancelling, setCancelling]           = useState(false);
+  const [downloading, setDownloading]         = useState(false);
+  const [downloadingFiche, setDownloadingFiche] = useState(false);
 
   const frontendUrl =
     typeof window !== "undefined"
@@ -57,6 +58,18 @@ export default function AppointmentDetailPage() {
       alert("Erreur lors du téléchargement. Réessayez.");
     } finally {
       setDownloading(false);
+    }
+  }, [appt]);
+
+  const handleDownloadFiche = useCallback(async () => {
+    if (!appt) return;
+    setDownloadingFiche(true);
+    try {
+      await appointmentService.downloadFiche(appt.id);
+    } catch {
+      alert("Erreur lors du téléchargement de la fiche. Réessayez.");
+    } finally {
+      setDownloadingFiche(false);
     }
   }, [appt]);
 
@@ -173,6 +186,13 @@ export default function AppointmentDetailPage() {
 
         {/* Actions */}
         <div className="space-y-3 pb-6">
+          <button
+            onClick={handleDownloadFiche}
+            disabled={downloadingFiche}
+            className="flex items-center justify-center w-full bg-green-700 text-white text-sm font-semibold rounded-xl py-3 hover:bg-green-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {downloadingFiche ? "Génération en cours…" : "📋 Télécharger la fiche de demande PDF"}
+          </button>
           <button
             onClick={handleDownload}
             disabled={downloading}

@@ -215,6 +215,36 @@ class AppointmentController extends Controller
         ]);
     }
 
+    // ─── Télécharger la fiche de demande PDF ─────────────────────
+    public function downloadFiche(Request $request, PassportRequest $appointment): Response
+    {
+        $this->authorizeOwner($request, $appointment);
+
+        $appointment->load(['center', 'applicant']);
+
+        $mspcDataUri    = $this->imgDataUri(public_path('images/mspc.jpeg'),   'image/jpeg');
+        $dcpafDataUri   = $this->imgDataUri(public_path('images/dcpaf.jpg'),   'image/jpeg');
+        $esonoyaDataUri = $this->imgDataUri(public_path('images/esonoya.png'), 'image/png');
+
+        $pdf = Pdf::loadView('pdf.passport-application', [
+            'appointment'    => $appointment,
+            'mspcDataUri'    => $mspcDataUri,
+            'dcpafDataUri'   => $dcpafDataUri,
+            'esonoyaDataUri' => $esonoyaDataUri,
+        ])
+        ->setPaper('a4', 'portrait')
+        ->setOptions([
+            'dpi'                  => 96,
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled'      => false,
+            'defaultFont'          => 'DejaVu Sans',
+        ]);
+
+        $filename = 'fiche-demande-' . $appointment->reference_number . '.pdf';
+
+        return $pdf->download($filename);
+    }
+
     // ─── Helpers privés ──────────────────────────────────────────
     private function authorizeOwner(Request $request, PassportRequest $appointment): void
     {

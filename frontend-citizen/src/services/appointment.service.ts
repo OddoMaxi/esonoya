@@ -42,4 +42,14 @@ export const appointmentService = {
     const url = appointmentService.getPdfUrl(id);
     window.open(url, "_blank", "noopener");
   },
+
+  getFicheUrl(id: string): string {
+    const token = typeof window !== "undefined" ? localStorage.getItem("esonoya_token") : null;
+    return `/api/fiche/${id}${token ? `?token=${encodeURIComponent(token)}` : ""}`;
+  },
+
+  async downloadFiche(id: string): Promise<void> {
+    const url = appointmentService.getFicheUrl(id);
+    window.open(url, "_blank", "noopener");
+  },
 };

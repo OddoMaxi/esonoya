@@ -20,8 +20,9 @@ export default function SuccessPage() {
   const router   = useRouter();
   const [appointment, setAppointment] = useState<Appointment | null>(null);
   const [loading, setLoading]         = useState(true);
-  const [downloading, setDownloading] = useState(false);
-  const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [downloading, setDownloading]         = useState(false);
+  const [downloadingFiche, setDownloadingFiche] = useState(false);
+  const [downloadError, setDownloadError]       = useState<string | null>(null);
 
   const handleDownload = useCallback(async () => {
     if (!appointment) return;
@@ -33,6 +34,19 @@ export default function SuccessPage() {
       setDownloadError("Erreur lors du téléchargement. Réessayez.");
     } finally {
       setDownloading(false);
+    }
+  }, [appointment]);
+
+  const handleDownloadFiche = useCallback(async () => {
+    if (!appointment) return;
+    setDownloadingFiche(true);
+    setDownloadError(null);
+    try {
+      await appointmentService.downloadFiche(appointment.id);
+    } catch {
+      setDownloadError("Erreur lors du téléchargement de la fiche. Réessayez.");
+    } finally {
+      setDownloadingFiche(false);
     }
   }, [appointment]);
 
@@ -157,6 +171,13 @@ export default function SuccessPage() {
           {downloadError && (
             <p className="text-center text-sm text-red-600">{downloadError}</p>
           )}
+          <button
+            onClick={handleDownloadFiche}
+            disabled={downloadingFiche}
+            className="flex items-center justify-center w-full bg-green-700 text-white text-sm font-semibold rounded-xl py-3 hover:bg-green-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {downloadingFiche ? "Génération en cours…" : "📋 Télécharger la fiche de demande PDF"}
+          </button>
           <button
             onClick={handleDownload}
             disabled={downloading}

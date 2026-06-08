@@ -51,6 +51,13 @@ Route::get('appointments/{appointment}/pdf', [AppointmentController::class, 'dow
         'auth:sanctum',
     ]);
 
+// PDF fiche de demande de passeport
+Route::get('appointments/{appointment}/fiche', [AppointmentController::class, 'downloadFiche'])
+    ->middleware([
+        \App\Http\Middleware\QueryTokenToBearer::class,
+        'auth:sanctum',
+    ]);
+
 // ─── API Administration (authentifiée + rôles) ───────────────
 Route::prefix('admin')->middleware(['auth:admin'])->group(function () {
 
