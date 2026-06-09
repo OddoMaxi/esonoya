@@ -97,7 +97,7 @@ function ScannerTab() {
 
   const loadStats = useCallback(async () => {
     try {
-      const { data } = await api.get("/admin/scan-history", { params: { per_page: 1 } });
+      const { data } = await api.get("/admin/scan-history", { params: { per_page: 5 } });
       setTodayStats(data.today_stats);
     } catch {}
   }, []);
