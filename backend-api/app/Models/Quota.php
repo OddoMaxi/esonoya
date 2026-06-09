@@ -10,9 +10,13 @@ class Quota extends Model
 {
     use HasFactory, HasUuids;
 
+    // Créneaux horaires standards
+    public const TIME_SLOTS = ['08h-10h', '10h-12h', '12h-14h', '14h-16h'];
+
     protected $fillable = [
         'center_id',
         'date',
+        'time_slot',
         'total_slots',
         'booked_slots',
         'is_suspended',

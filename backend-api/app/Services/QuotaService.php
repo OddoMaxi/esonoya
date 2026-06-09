@@ -28,11 +28,12 @@ class QuotaService
         $today   = Carbon::today();
         $endDate = $today->copy()->addDays($horizonDays);
 
-        // Preload quotas for the range in one query
+        // Preload all quotas for the range — groupBy date pour gérer les créneaux
         $quotas = Quota::where('center_id', $center->id)
             ->whereBetween('date', [$today->toDateString(), $endDate->toDateString()])
+            ->orderBy('time_slot')
             ->get()
-            ->keyBy(fn ($q) => $q->date->toDateString());
+            ->groupBy(fn ($q) => $q->date->toDateString());
 
         // Preload closures for the range
         $closures = CenterClosure::where('center_id', $center->id)
@@ -79,19 +80,12 @@ class QuotaService
             return false;
         }
 
-        $quota = Quota::where('center_id', $center->id)
+        // Au moins un quota actif avec des places disponibles pour ce jour
+        return Quota::where('center_id', $center->id)
             ->whereDate('date', $date->toDateString())
-            ->first();
-
-        if (! $quota) {
-            return false;
-        }
-
-        if ($quota->is_suspended) {
-            return false;
-        }
-
-        return $quota->available_slots > 0;
+            ->where('is_suspended', false)
+            ->where('booked_slots', '<', DB::raw('total_slots'))
+            ->exists();
     }
 
     public function isPublicHoliday(Carbon $date): bool
@@ -104,18 +98,47 @@ class QuotaService
      * Skips weekends, holidays, and closure periods.
      * Does not overwrite existing quotas unless $overwrite is true.
      */
+    /**
+     * Génère les 4 créneaux standards pour un jour donné.
+     * Retourne le nombre de créneaux créés.
+     */
+    public function generateDaySlots(Center $center, string $date, int $slotsPerSlot): int
+    {
+        $created = 0;
+        foreach (Quota::TIME_SLOTS as $slot) {
+            $exists = Quota::where('center_id', $center->id)
+                ->whereDate('date', $date)
+                ->where('time_slot', $slot)
+                ->exists();
+
+            if (! $exists) {
+                Quota::create([
+                    'center_id'    => $center->id,
+                    'date'         => $date,
+                    'time_slot'    => $slot,
+                    'total_slots'  => $slotsPerSlot,
+                    'booked_slots' => 0,
+                    'is_suspended' => false,
+                ]);
+                $created++;
+            }
+        }
+        return $created;
+    }
+
     public function generateBulkQuotas(
         Center $center,
         Carbon $from,
         Carbon $to,
         int $dailySlots = self::DEFAULT_DAILY_SLOTS,
         bool $skipWeekends = true,
-        bool $overwrite = false
+        bool $overwrite = false,
+        bool $useTimeSlots = false,
+        int $slotsPerTimeSlot = 0
     ): int {
         $created = 0;
         $cursor  = $from->copy();
 
-        // Preload closures once
         $closures = CenterClosure::where('center_id', $center->id)
             ->where('date_to', '>=', $from->toDateString())
             ->where('date_from', '<=', $to->toDateString())
@@ -129,26 +152,58 @@ class QuotaService
                  || $this->isCenterClosedByCollection($closures, $cursor);
 
             if (! $skip) {
-                if ($overwrite) {
-                    Quota::updateOrCreate(
-                        ['center_id' => $center->id, 'date' => $dateStr],
-                        ['total_slots' => $dailySlots, 'booked_slots' => 0, 'is_suspended' => false]
-                    );
-                    $created++;
+                if ($useTimeSlots) {
+                    // Générer un quota par créneau
+                    $perSlot = $slotsPerTimeSlot > 0 ? $slotsPerTimeSlot : intdiv($dailySlots, count(Quota::TIME_SLOTS));
+                    foreach (Quota::TIME_SLOTS as $slot) {
+                        if ($overwrite) {
+                            Quota::updateOrCreate(
+                                ['center_id' => $center->id, 'date' => $dateStr, 'time_slot' => $slot],
+                                ['total_slots' => $perSlot, 'booked_slots' => 0, 'is_suspended' => false]
+                            );
+                            $created++;
+                        } else {
+                            $exists = Quota::where('center_id', $center->id)
+                                ->whereDate('date', $dateStr)
+                                ->where('time_slot', $slot)
+                                ->exists();
+                            if (! $exists) {
+                                Quota::create([
+                                    'center_id'    => $center->id,
+                                    'date'         => $dateStr,
+                                    'time_slot'    => $slot,
+                                    'total_slots'  => $perSlot,
+                                    'booked_slots' => 0,
+                                    'is_suspended' => false,
+                                ]);
+                                $created++;
+                            }
+                        }
+                    }
                 } else {
-                    $exists = Quota::where('center_id', $center->id)
-                        ->whereDate('date', $dateStr)
-                        ->exists();
-
-                    if (! $exists) {
-                        Quota::create([
-                            'center_id'    => $center->id,
-                            'date'         => $dateStr,
-                            'total_slots'  => $dailySlots,
-                            'booked_slots' => 0,
-                            'is_suspended' => false,
-                        ]);
+                    // Génération classique (sans créneau)
+                    if ($overwrite) {
+                        Quota::updateOrCreate(
+                            ['center_id' => $center->id, 'date' => $dateStr, 'time_slot' => null],
+                            ['total_slots' => $dailySlots, 'booked_slots' => 0, 'is_suspended' => false]
+                        );
                         $created++;
+                    } else {
+                        $exists = Quota::where('center_id', $center->id)
+                            ->whereDate('date', $dateStr)
+                            ->whereNull('time_slot')
+                            ->exists();
+                        if (! $exists) {
+                            Quota::create([
+                                'center_id'    => $center->id,
+                                'date'         => $dateStr,
+                                'time_slot'    => null,
+                                'total_slots'  => $dailySlots,
+                                'booked_slots' => 0,
+                                'is_suspended' => false,
+                            ]);
+                            $created++;
+                        }
                     }
                 }
             }
@@ -194,43 +249,84 @@ class QuotaService
     private function buildDateEntry(
         Center $center,
         Carbon $date,
-        Collection $quotas,
+        Collection $quotasByDate,
         Collection $closures,
         string $dateStr
     ): ?array {
-        // Skip past dates
         if ($date->isPast() && ! $date->isToday()) {
             return null;
         }
 
         $unavailableReason = null;
-
         if ($this->isPublicHoliday($date)) {
             $unavailableReason = 'public_holiday';
         } elseif ($this->isCenterClosedByCollection($closures, $date)) {
             $unavailableReason = 'center_closed';
         }
 
-        /** @var Quota|null $quota */
-        $quota = $quotas->get($dateStr);
+        // Quotas du jour (Collection ou null)
+        /** @var Collection|null $dayQuotas */
+        $dayQuotas = $quotasByDate->get($dateStr);
 
         if ($unavailableReason) {
+            $total   = $dayQuotas ? $dayQuotas->sum('total_slots') : 0;
+            $booked  = $dayQuotas ? $dayQuotas->sum('booked_slots') : 0;
             return [
                 'date'               => $dateStr,
-                'total_slots'        => $quota?->total_slots ?? 0,
-                'booked_slots'       => $quota?->booked_slots ?? 0,
+                'total_slots'        => $total,
+                'booked_slots'       => $booked,
                 'available_slots'    => 0,
                 'is_available'       => false,
                 'is_suspended'       => false,
                 'unavailable_reason' => $unavailableReason,
-                'quota_id'           => $quota?->id,
+                'quota_id'           => null,
+                'time_slots'         => null,
             ];
         }
 
-        if (! $quota) {
-            // No quota configured for this date — not bookable
+        if (! $dayQuotas || $dayQuotas->isEmpty()) {
             return null;
         }
+
+        // Déterminer si ce jour utilise des créneaux ou l'ancien système
+        $hasTimeSlots = $dayQuotas->contains(fn ($q) => $q->time_slot !== null);
+
+        if ($hasTimeSlots) {
+            // ── Mode créneaux ────────────────────────────────────────
+            $timeSlots   = $dayQuotas->filter(fn ($q) => $q->time_slot !== null);
+            $totalAll    = $timeSlots->sum('total_slots');
+            $bookedAll   = $timeSlots->sum('booked_slots');
+            $availAll    = max(0, $totalAll - $bookedAll);
+            $allSuspended = $timeSlots->every(fn ($q) => $q->is_suspended);
+            $anyAvailable = $timeSlots->contains(fn ($q) => ! $q->is_suspended && $q->available_slots > 0);
+
+            $timeSlotsData = $timeSlots->map(fn ($q) => [
+                'quota_id'        => $q->id,
+                'time_slot'       => $q->time_slot,
+                'total_slots'     => $q->total_slots,
+                'booked_slots'    => $q->booked_slots,
+                'available_slots' => $q->available_slots,
+                'is_available'    => ! $q->is_suspended && $q->available_slots > 0,
+                'is_suspended'    => $q->is_suspended,
+                'suspension_reason' => $q->suspension_reason,
+            ])->values();
+
+            return [
+                'date'               => $dateStr,
+                'total_slots'        => $totalAll,
+                'booked_slots'       => $bookedAll,
+                'available_slots'    => $availAll,
+                'is_available'       => $anyAvailable,
+                'is_suspended'       => $allSuspended,
+                'unavailable_reason' => $anyAvailable ? null : ($allSuspended ? 'suspended' : 'full'),
+                'quota_id'           => null,
+                'time_slots'         => $timeSlotsData,
+            ];
+        }
+
+        // ── Mode ancien (sans créneau) ────────────────────────────
+        /** @var Quota $quota */
+        $quota = $dayQuotas->first();
 
         if ($quota->is_suspended) {
             return [
@@ -243,6 +339,7 @@ class QuotaService
                 'unavailable_reason' => 'suspended',
                 'suspension_reason'  => $quota->suspension_reason,
                 'quota_id'           => $quota->id,
+                'time_slots'         => null,
             ];
         }
 
@@ -257,6 +354,7 @@ class QuotaService
             'is_suspended'       => false,
             'unavailable_reason' => $available === 0 ? 'full' : null,
             'quota_id'           => $quota->id,
+            'time_slots'         => null,
         ];
     }
 

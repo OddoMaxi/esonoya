@@ -73,6 +73,8 @@ Route::prefix('admin')->middleware(['auth:admin'])->group(function () {
     Route::get('quotas',                      [AdminQuotaController::class, 'index']);
     Route::post('quotas/bulk',                [AdminQuotaController::class, 'bulk'])
         ->middleware('permission:quotas.create');
+    Route::post('quotas/generate-day-slots', [AdminQuotaController::class, 'generateDaySlots'])
+        ->middleware('permission:quotas.create');
     Route::post('quotas',                     [AdminQuotaController::class, 'store'])
         ->middleware('permission:quotas.create');
     Route::put('quotas/{quota}',              [AdminQuotaController::class, 'update'])

@@ -27,6 +27,7 @@ export interface Quota {
   id: string;
   center_id: string;
   date: string;
+  time_slot: string | null;
   total_slots: number;
   booked_slots: number;
   available_slots: number;

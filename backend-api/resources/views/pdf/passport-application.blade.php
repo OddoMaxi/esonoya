@@ -248,6 +248,12 @@
             : '' }}
         </td>
       </tr>
+      @if($appointment->quota?->time_slot)
+      <tr>
+        <td class="lbl">Créneau horaire</td>
+        <td class="val">{{ $appointment->quota->time_slot }}</td>
+      </tr>
+      @endif
     </table>
 
     <div class="note">* Champs obligatoires — Document officiel eSonoya</div>

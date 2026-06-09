@@ -42,35 +42,62 @@ class AdminQuotaController extends Controller
     }
 
     /**
-     * POST /api/admin/quotas — Create a single quota entry
+     * POST /api/admin/quotas — Créer un quota (avec ou sans créneau)
      */
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
             'center_id'   => ['required', 'uuid', 'exists:centers,id'],
             'date'        => ['required', 'date', 'after_or_equal:today'],
+            'time_slot'   => ['nullable', 'string', 'max:15'],
             'total_slots' => ['required', 'integer', 'min:1', 'max:500'],
         ]);
 
-        $exists = Quota::where('center_id', $data['center_id'])
-            ->whereDate('date', $data['date'])
-            ->exists();
+        $timeSlot = $data['time_slot'] ?? null;
 
-        if ($exists) {
+        $query = Quota::where('center_id', $data['center_id'])
+            ->whereDate('date', $data['date']);
+        $query = $timeSlot
+            ? $query->where('time_slot', $timeSlot)
+            : $query->whereNull('time_slot');
+
+        if ($query->exists()) {
             return response()->json([
-                'message' => 'Un quota existe déjà pour cette date.',
+                'message' => 'Un quota existe déjà pour cette date' . ($timeSlot ? " et le créneau {$timeSlot}" : '') . '.',
             ], 422);
         }
 
         $quota = Quota::create([
             'center_id'    => $data['center_id'],
             'date'         => $data['date'],
+            'time_slot'    => $timeSlot,
             'total_slots'  => $data['total_slots'],
             'booked_slots' => 0,
             'is_suspended' => false,
         ]);
 
         return response()->json(['data' => $quota], 201);
+    }
+
+    /**
+     * POST /api/admin/quotas/generate-day-slots — Générer les 4 créneaux standards pour un jour
+     */
+    public function generateDaySlots(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'center_id'      => ['required', 'uuid', 'exists:centers,id'],
+            'date'           => ['required', 'date', 'after_or_equal:today'],
+            'slots_per_slot' => ['required', 'integer', 'min:1', 'max:500'],
+        ]);
+
+        $center  = Center::findOrFail($data['center_id']);
+        $created = $this->quotaService->generateDaySlots($center, $data['date'], $data['slots_per_slot']);
+
+        return response()->json([
+            'message' => "{$created} créneau(x) créé(s) sur " . count(Quota::TIME_SLOTS) . '.',
+            'created' => $created,
+            'slots'   => Quota::TIME_SLOTS,
+        ], 201);
     }
 
     /**
@@ -106,17 +133,19 @@ class AdminQuotaController extends Controller
     // ─── Bulk generation ──────────────────────────────────────────
 
     /**
-     * POST /api/admin/quotas/bulk — Generate quotas for a date range
+     * POST /api/admin/quotas/bulk — Génération en masse (avec ou sans créneaux)
      */
     public function bulk(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'center_id'     => ['required', 'uuid', 'exists:centers,id'],
-            'date_from'     => ['required', 'date'],
-            'date_to'       => ['required', 'date', 'after_or_equal:date_from'],
-            'total_slots'   => ['required', 'integer', 'min:1', 'max:500'],
-            'skip_weekends' => ['boolean'],
-            'overwrite'     => ['boolean'],
+            'center_id'         => ['required', 'uuid', 'exists:centers,id'],
+            'date_from'         => ['required', 'date'],
+            'date_to'           => ['required', 'date', 'after_or_equal:date_from'],
+            'total_slots'       => ['required', 'integer', 'min:1', 'max:500'],
+            'skip_weekends'     => ['boolean'],
+            'overwrite'         => ['boolean'],
+            'use_time_slots'    => ['boolean'],
+            'slots_per_time_slot' => ['nullable', 'integer', 'min:1', 'max:500'],
         ]);
 
         $center = Center::findOrFail($data['center_id']);
@@ -125,10 +154,11 @@ class AdminQuotaController extends Controller
         $to   = Carbon::parse($data['date_to']);
 
         if ($to->diffInDays($from) > 365) {
-            return response()->json([
-                'message' => 'La plage ne peut pas dépasser 365 jours.',
-            ], 422);
+            return response()->json(['message' => 'La plage ne peut pas dépasser 365 jours.'], 422);
         }
+
+        $useTimeSlots    = $data['use_time_slots'] ?? false;
+        $slotsPerSlot    = $data['slots_per_time_slot'] ?? 0;
 
         $count = $this->quotaService->generateBulkQuotas(
             $center,
@@ -137,10 +167,14 @@ class AdminQuotaController extends Controller
             $data['total_slots'],
             $data['skip_weekends'] ?? true,
             $data['overwrite'] ?? false,
+            $useTimeSlots,
+            $slotsPerSlot,
         );
 
+        $label = $useTimeSlots ? 'créneau(x)' : 'quota(s)';
+
         return response()->json([
-            'message' => "{$count} quota(s) créé(s).",
+            'message' => "{$count} {$label} créé(s).",
             'created' => $count,
         ]);
     }

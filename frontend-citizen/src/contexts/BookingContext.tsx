@@ -46,11 +46,12 @@ export interface BookingState {
   father_first_name: string;
   mother_last_name: string;
   mother_first_name: string;
-  // Étape 7 — Centre et date
+  // Étape 7 — Centre, date et créneau horaire
   center_id: string;
   center_name: string;
   appointment_date: string;
   quota_id: string;
+  time_slot: string;      // ex: '08h-10h', vide si pas de créneau
   // Étape 8 — Déclarant (si booking_for = 'other')
   declarant: DeclarantData | null;
 }
@@ -92,6 +93,7 @@ const initialState: BookingState = {
   center_id: "",
   center_name: "",
   appointment_date: "",
+  time_slot: "",
   quota_id: "",
   declarant: null,
 };

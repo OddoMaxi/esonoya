@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { StepWrapper } from "@/components/booking/StepWrapper";
 import { useBooking } from "@/contexts/BookingContext";
 import { appointmentService } from "@/services/appointment.service";
-import type { Center, Quota } from "@/types";
+import type { Center, Quota, TimeSlotEntry } from "@/types";
 
 const schema = z.object({
   center_id:        z.string().min(1, "Choisissez un centre"),
@@ -323,14 +323,30 @@ export function Step7CenterDate() {
       .finally(() => setLoadingQuotas(false));
   }, [selectedCenterId, setValue]);
 
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>(state.time_slot || "");
+
   const onSubmit = (data: FormData) => {
     const center = centers.find((c) => c.id === data.center_id);
-    update({ center_id: data.center_id, center_name: center?.name ?? "", appointment_date: data.appointment_date });
+    const dateQuota = quotaMap.get(data.appointment_date);
+    const hasSlots  = !!dateQuota?.time_slots?.length;
+
+    // Si la date a des créneaux mais aucun sélectionné → bloquer
+    if (hasSlots && !selectedTimeSlot) return;
+
+    update({
+      center_id:        data.center_id,
+      center_name:      center?.name ?? "",
+      appointment_date: data.appointment_date,
+      time_slot:        selectedTimeSlot,
+    });
     goNext();
   };
 
-  const selectedQuota = selectedDate ? quotaMap.get(selectedDate) : undefined;
-  const selectedCenter = centers.find((c) => c.id === selectedCenterId);
+  const selectedQuota      = selectedDate ? quotaMap.get(selectedDate) : undefined;
+  const selectedCenter     = centers.find((c) => c.id === selectedCenterId);
+  const dateHasTimeSlots   = !!selectedQuota?.time_slots?.length;
+  const canGoNextComputed  = !!selectedCenterId && !!selectedDate &&
+    (!dateHasTimeSlots || !!selectedTimeSlot);
 
   return (
     <StepWrapper
@@ -338,7 +354,7 @@ export function Step7CenterDate() {
       subtitle="Sélectionnez un centre agréé puis une date disponible."
       onNext={handleSubmit(onSubmit)}
       onPrev={goPrev}
-      canGoNext={!!selectedCenterId && !!selectedDate}
+      canGoNext={canGoNextComputed}
     >
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
@@ -413,8 +429,13 @@ export function Step7CenterDate() {
               selected={selectedDate}
               onSelect={(date) => {
                 setValue("appointment_date", date, { shouldValidate: true });
+                setSelectedTimeSlot("");
+                update({ quota_id: "", time_slot: "" });
                 const q = quotaMap.get(date);
-                if (q?.quota_id) update({ quota_id: q.quota_id });
+                // Si pas de créneaux horaires, on enregistre directement le quota_id
+                if (q?.quota_id && !q.time_slots?.length) {
+                  update({ quota_id: q.quota_id });
+                }
               }}
               minDate={today}
               maxDate={maxDate}
@@ -427,8 +448,61 @@ export function Step7CenterDate() {
         </div>
       )}
 
+      {/* Sélecteur de créneaux horaires */}
+      {selectedDate && dateHasTimeSlots && (
+        <div className="pt-2">
+          <p className="text-sm font-medium text-gray-700 mb-3">
+            Créneau horaire <span className="text-red-500">*</span>
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            {selectedQuota!.time_slots!.map((slot: TimeSlotEntry) => {
+              const isSelected = selectedTimeSlot === slot.time_slot;
+              const disabled   = !slot.is_available;
+              return (
+                <button
+                  key={slot.time_slot}
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => {
+                    if (disabled) return;
+                    setSelectedTimeSlot(slot.time_slot);
+                    update({ quota_id: slot.quota_id, time_slot: slot.time_slot });
+                  }}
+                  className={cn(
+                    "flex flex-col items-center justify-center rounded-xl border-2 p-4 transition-all",
+                    isSelected
+                      ? "border-blue-700 bg-blue-50"
+                      : disabled
+                      ? "border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed"
+                      : "border-gray-200 bg-white hover:border-blue-400 hover:bg-blue-50 cursor-pointer"
+                  )}
+                >
+                  <span className={cn(
+                    "text-base font-bold",
+                    isSelected ? "text-blue-900" : disabled ? "text-gray-400" : "text-gray-800"
+                  )}>
+                    {slot.time_slot}
+                  </span>
+                  <span className={cn(
+                    "text-xs mt-1",
+                    isSelected ? "text-blue-600" : disabled ? "text-red-400" : "text-gray-500"
+                  )}>
+                    {disabled
+                      ? slot.is_suspended ? "Suspendu" : "Complet"
+                      : `${slot.available_slots} place${slot.available_slots > 1 ? "s" : ""}`}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          {!selectedTimeSlot && (
+            <p className="mt-2 text-xs text-red-500">Veuillez sélectionner un créneau horaire.</p>
+          )}
+        </div>
+      )}
+
       {/* Selected recap */}
-      {selectedCenter && selectedDate && selectedQuota && (
+      {selectedCenter && selectedDate && selectedQuota && (!dateHasTimeSlots || selectedTimeSlot) && (
         <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800 flex items-start gap-2">
           <span className="mt-0.5 text-base">✅</span>
           <div>
@@ -438,6 +512,9 @@ export function Step7CenterDate() {
                 weekday: "long", day: "numeric", month: "long", year: "numeric",
               })}
             </p>
+            {selectedTimeSlot && (
+              <p className="font-medium mt-0.5">Créneau : {selectedTimeSlot}</p>
+            )}
             <p className="text-xs text-green-700 mt-0.5">
               {selectedQuota.available_slots} place{selectedQuota.available_slots > 1 ? "s" : ""} restante{selectedQuota.available_slots > 1 ? "s" : ""}
             </p>

@@ -10,8 +10,19 @@ export interface Center {
   is_active: boolean;
 }
 
+export interface TimeSlotEntry {
+  quota_id: string;
+  time_slot: string;           // ex: '08h-10h'
+  total_slots: number;
+  booked_slots: number;
+  available_slots: number;
+  is_available: boolean;
+  is_suspended: boolean;
+  suspension_reason: string | null;
+}
+
 export interface Quota {
-  quota_id: string | null;   // ID du quota (null si date sans quota)
+  quota_id: string | null;   // null si date avec créneaux
   date: string;              // ISO date YYYY-MM-DD
   total_slots: number;
   booked_slots: number;
@@ -20,6 +31,7 @@ export interface Quota {
   is_suspended: boolean;
   suspension_reason: string | null;
   unavailable_reason: string | null;
+  time_slots: TimeSlotEntry[] | null;  // null = ancien mode sans créneau
 }
 
 export interface Applicant {

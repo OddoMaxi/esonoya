@@ -76,6 +76,7 @@ export default function QuotasPage() {
   const [showClosureModal, setShowClosureModal] = useState(false);
   const [showHolidayModal, setShowHolidayModal] = useState(false);
   const [showSingleModal, setShowSingleModal] = useState(false);
+  const [showGenerateSlotsModal, setShowGenerateSlotsModal] = useState(false);
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -256,12 +257,18 @@ export default function QuotasPage() {
               />
             </div>
             {canManage && (
-              <div className="flex gap-2 ml-auto">
+              <div className="flex gap-2 ml-auto flex-wrap">
                 <button
                   onClick={() => setShowSingleModal(true)}
                   className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
                   + Date unique
+                </button>
+                <button
+                  onClick={() => setShowGenerateSlotsModal(true)}
+                  className="px-3 py-2 text-sm bg-green-700 text-white rounded-lg hover:bg-green-600"
+                >
+                  ⏰ Créneaux du jour
                 </button>
                 <button
                   onClick={() => setShowBulkModal(true)}
@@ -288,9 +295,10 @@ export default function QuotasPage() {
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Date</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Créneau</th>
                     <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Total</th>
                     <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Réservés</th>
-                    <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Disponibilité</th>
+                    <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Dispo</th>
                     {canManage && (
                       <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Actions</th>
                     )}
@@ -299,15 +307,17 @@ export default function QuotasPage() {
                 <tbody className="divide-y divide-gray-100">
                   {quotas.map((quota) => (
                     <tr key={quota.id} className={quota.is_suspended ? "bg-gray-50 opacity-70" : "hover:bg-gray-50"}>
-                      <td className="px-4 py-3 font-medium text-gray-900">
+                      <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
                         {formatDate(quota.date)}
                       </td>
-                      <td className="px-4 py-3 text-right text-gray-600">
-                        {quota.total_slots}
+                      <td className="px-4 py-3">
+                        {quota.time_slot
+                          ? <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs font-mono font-semibold">{quota.time_slot}</span>
+                          : <span className="text-gray-400 text-xs">—</span>
+                        }
                       </td>
-                      <td className="px-4 py-3 text-right text-gray-600">
-                        {quota.booked_slots}
-                      </td>
+                      <td className="px-4 py-3 text-right text-gray-600">{quota.total_slots}</td>
+                      <td className="px-4 py-3 text-right text-gray-600">{quota.booked_slots}</td>
                       <td className="px-4 py-3 text-center">
                         <SlotBadge quota={quota} />
                         {quota.is_suspended && quota.suspension_reason && (
@@ -318,26 +328,11 @@ export default function QuotasPage() {
                         <td className="px-4 py-3 text-right">
                           <div className="flex justify-end gap-2">
                             {quota.is_suspended ? (
-                              <button
-                                onClick={() => handleReactivate(quota)}
-                                className="text-xs text-green-600 hover:underline"
-                              >
-                                Réactiver
-                              </button>
+                              <button onClick={() => handleReactivate(quota)} className="text-xs text-green-600 hover:underline">Réactiver</button>
                             ) : (
-                              <button
-                                onClick={() => setShowSuspendModal(quota)}
-                                className="text-xs text-orange-600 hover:underline"
-                              >
-                                Suspendre
-                              </button>
+                              <button onClick={() => setShowSuspendModal(quota)} className="text-xs text-orange-600 hover:underline">Suspendre</button>
                             )}
-                            <button
-                              onClick={() => handleDelete(quota)}
-                              className="text-xs text-red-500 hover:underline"
-                            >
-                              Supprimer
-                            </button>
+                            <button onClick={() => handleDelete(quota)} className="text-xs text-red-500 hover:underline">Supprimer</button>
                           </div>
                         </td>
                       )}
@@ -494,6 +489,16 @@ export default function QuotasPage() {
         />
       )}
 
+      {showGenerateSlotsModal && (
+        <GenerateSlotsModal
+          centerId={selectedCenter}
+          centerName={centerName}
+          onClose={() => setShowGenerateSlotsModal(false)}
+          onSuccess={(msg) => { notify(msg); loadQuotas(); }}
+          onError={(msg) => notify(msg, true)}
+        />
+      )}
+
       {showSuspendModal && (
         <SuspendModal
           quota={showSuspendModal}
@@ -544,9 +549,11 @@ function BulkModal({
   const [form, setForm] = useState({
     date_from: "",
     date_to: "",
-    total_slots: "30",
+    total_slots: "80",
+    slots_per_time_slot: "20",
     skip_weekends: true,
     overwrite: false,
+    use_time_slots: true,
   });
   const [loading, setLoading] = useState(false);
 
@@ -561,6 +568,8 @@ function BulkModal({
         total_slots: Number(form.total_slots),
         skip_weekends: form.skip_weekends,
         overwrite: form.overwrite,
+        use_time_slots: form.use_time_slots,
+        slots_per_time_slot: form.use_time_slots ? Number(form.slots_per_time_slot) : undefined,
       });
       onSuccess(result.message);
       onClose();
@@ -589,11 +598,33 @@ function BulkModal({
               className="input" />
           </Field>
         </div>
-        <Field label="Places par jour">
-          <input type="number" min={1} max={500} required value={form.total_slots}
-            onChange={(e) => setForm({ ...form, total_slots: e.target.value })}
-            className="input" />
-        </Field>
+
+        {/* Option créneaux */}
+        <div className="bg-blue-50 rounded-xl p-3 space-y-3">
+          <label className="flex items-center gap-2 text-sm text-blue-900 font-medium cursor-pointer">
+            <input type="checkbox" checked={form.use_time_slots}
+              onChange={(e) => setForm({ ...form, use_time_slots: e.target.checked })}
+              className="rounded" />
+            Utiliser les créneaux horaires (08h-10h, 10h-12h, 12h-14h, 14h-16h)
+          </label>
+          {form.use_time_slots ? (
+            <Field label="Places par créneau">
+              <input type="number" min={1} max={500} required value={form.slots_per_time_slot}
+                onChange={(e) => setForm({ ...form, slots_per_time_slot: e.target.value })}
+                className="input" />
+              <p className="text-xs text-blue-600 mt-1">
+                Total par jour : {Number(form.slots_per_time_slot) * 4} places
+              </p>
+            </Field>
+          ) : (
+            <Field label="Places par jour">
+              <input type="number" min={1} max={500} required value={form.total_slots}
+                onChange={(e) => setForm({ ...form, total_slots: e.target.value })}
+                className="input" />
+            </Field>
+          )}
+        </div>
+
         <div className="flex gap-4">
           <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
             <input type="checkbox" checked={form.skip_weekends}
@@ -614,6 +645,72 @@ function BulkModal({
   );
 }
 
+// ─── Modal : génération créneaux d'un jour ────────────────────
+
+const TIME_SLOTS = ["08h-10h", "10h-12h", "12h-14h", "14h-16h"];
+
+function GenerateSlotsModal({
+  centerId,
+  centerName,
+  onClose,
+  onSuccess,
+  onError,
+}: {
+  centerId: string;
+  centerName: string;
+  onClose: () => void;
+  onSuccess: (msg: string) => void;
+  onError: (msg: string) => void;
+}) {
+  const [date, setDate] = useState("");
+  const [slotsPerSlot, setSlotsPerSlot] = useState("20");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const result = await quotaService.generateDaySlots({
+        center_id: centerId,
+        date,
+        slots_per_slot: Number(slotsPerSlot),
+      });
+      onSuccess(result.message);
+      onClose();
+    } catch {
+      onError("Erreur lors de la génération des créneaux.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <ModalOverlay onClose={onClose}>
+      <h2 className="text-lg font-bold text-gray-900 mb-1">Générer les créneaux du jour</h2>
+      <p className="text-sm text-gray-500 mb-4">{centerName}</p>
+      <div className="flex gap-2 flex-wrap mb-4">
+        {TIME_SLOTS.map((s) => (
+          <span key={s} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-mono font-semibold">{s}</span>
+        ))}
+      </div>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Field label="Date">
+          <input type="date" required value={date}
+            onChange={(e) => setDate(e.target.value)} className="input" />
+        </Field>
+        <Field label="Places par créneau">
+          <input type="number" min={1} max={500} required value={slotsPerSlot}
+            onChange={(e) => setSlotsPerSlot(e.target.value)} className="input" />
+          <p className="text-xs text-gray-400 mt-1">
+            Total jour : {Number(slotsPerSlot) * TIME_SLOTS.length} places
+          </p>
+        </Field>
+        <ModalActions onClose={onClose} loading={loading} label="Générer les 4 créneaux" />
+      </form>
+    </ModalOverlay>
+  );
+}
+
 // ─── Modal : quota date unique ─────────────────────────────────
 
 function SingleQuotaModal({
@@ -629,17 +726,23 @@ function SingleQuotaModal({
 }) {
   const [date, setDate] = useState("");
   const [slots, setSlots] = useState("30");
+  const [timeSlot, setTimeSlot] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await quotaService.create({ center_id: centerId, date, total_slots: Number(slots) });
+      await quotaService.create({
+        center_id: centerId,
+        date,
+        time_slot: timeSlot || null,
+        total_slots: Number(slots),
+      });
       onSuccess();
       onClose();
     } catch {
-      onError("Erreur : la date existe peut-être déjà.");
+      onError("Erreur : ce quota existe peut-être déjà.");
     } finally {
       setLoading(false);
     }
@@ -652,6 +755,14 @@ function SingleQuotaModal({
         <Field label="Date">
           <input type="date" required value={date}
             onChange={(e) => setDate(e.target.value)} className="input" />
+        </Field>
+        <Field label="Créneau horaire (optionnel)">
+          <select value={timeSlot} onChange={(e) => setTimeSlot(e.target.value)} className="input">
+            <option value="">Aucun (quota journalier)</option>
+            {TIME_SLOTS.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
         </Field>
         <Field label="Nombre de places">
           <input type="number" min={1} max={500} required value={slots}

@@ -275,6 +275,7 @@ export function Step8Confirmation() {
               <tbody>
                 <FRow label="Centre"          value={state.center_name} />
                 <FRow label="Date du RDV"     value={state.appointment_date ? formatDate(state.appointment_date) : ""} />
+                {state.time_slot && <FRow label="Créneau horaire" value={state.time_slot} />}
               </tbody>
             </table>
           </div>

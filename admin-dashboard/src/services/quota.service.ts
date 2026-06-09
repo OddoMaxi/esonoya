@@ -14,10 +14,20 @@ export const quotaService = {
   async create(payload: {
     center_id: string;
     date: string;
+    time_slot?: string | null;
     total_slots: number;
   }): Promise<Quota> {
     const { data } = await api.post<ApiResponse<Quota>>("/admin/quotas", payload);
     return data.data;
+  },
+
+  async generateDaySlots(payload: {
+    center_id: string;
+    date: string;
+    slots_per_slot: number;
+  }): Promise<{ created: number; message: string; slots: string[] }> {
+    const { data } = await api.post("/admin/quotas/generate-day-slots", payload);
+    return data;
   },
 
   async update(quotaId: string, totalSlots: number): Promise<Quota> {
@@ -38,6 +48,8 @@ export const quotaService = {
     total_slots: number;
     skip_weekends?: boolean;
     overwrite?: boolean;
+    use_time_slots?: boolean;
+    slots_per_time_slot?: number;
   }): Promise<{ created: number; message: string }> {
     const { data } = await api.post("/admin/quotas/bulk", payload);
     return data;
