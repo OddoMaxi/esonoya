@@ -27,7 +27,7 @@ class SendAppointmentReminders extends Command
         $this->info("Rappels RDV du {$tomorrow}" . ($isDryRun ? ' [DRY-RUN]' : ''));
 
         // Rendez-vous confirmés demain sans rappel déjà envoyé
-        $appointments = PassportRequest::with(['applicant:id,passport_request_id,first_name,last_name,phone', 'center:id,name'])
+        $appointments = PassportRequest::with(['applicant:id,passport_request_id,first_name,last_name,phone', 'center:id,name', 'quota:id,time_slot'])
             ->where('status', PassportRequest::STATUS_CONFIRMED)
             ->whereDate('appointment_date', $tomorrow)
             ->whereNotExists(function ($query) {
@@ -68,6 +68,7 @@ class SendAppointmentReminders extends Command
                 'reference' => $appt->reference_number,
                 'center'    => $appt->center->name,
                 'date'      => Carbon::parse($appt->appointment_date)->locale('fr')->isoFormat('D MMMM YYYY'),
+                'slot'      => $appt->quota?->time_slot ?? '',
             ], $appt->id);
 
             if ($ok) {

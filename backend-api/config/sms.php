@@ -30,9 +30,9 @@ return [
 
         'otp_admin' => "eSonoya Admin - Code de verification : {code}. Valable {minutes} min.",
 
-        'confirmation' => "eSonoya - RDV confirme ! Ref: {reference} | Centre: {center} | Date: {date}. Presentez votre QR code le jour J.",
+        'confirmation' => "eSonoya - RDV confirme ! Ref: {reference} | Centre: {center} | Date: {date}{slot}. Presentez votre QR code le jour J.",
 
-        'reminder' => "eSonoya - Rappel : votre RDV passeport est demain ({date}) au centre {center}. Ref: {reference}. Pensez a vos documents !",
+        'reminder' => "eSonoya - Rappel : votre RDV passeport est demain ({date}{slot}) au centre {center}. Ref: {reference}. Pensez a vos documents !",
 
         'cancellation' => "eSonoya - RDV annule. Ref: {reference} | Centre: {center} | Date: {date}. Contactez le centre pour plus d informations.",
 

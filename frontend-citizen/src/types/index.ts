@@ -80,6 +80,7 @@ export interface Appointment {
   receipt_reference: string;
   request_type: RequestType;
   appointment_date: string;
+  time_slot: string | null;
   status: AppointmentStatus;
   qr_token: string;
   qr_scanned_at: string | null;

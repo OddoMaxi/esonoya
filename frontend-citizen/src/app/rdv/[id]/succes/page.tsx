@@ -125,6 +125,9 @@ export default function SuccessPage() {
                   <p className="font-semibold text-gray-900">
                     {formatDate(appointment.appointment_date)}
                   </p>
+                  {appointment.time_slot && (
+                    <p className="text-xs font-semibold text-blue-700 mt-0.5">{appointment.time_slot}</p>
+                  )}
                 </div>
                 <div>
                   <p className="text-xs text-gray-400">Demandeur</p>

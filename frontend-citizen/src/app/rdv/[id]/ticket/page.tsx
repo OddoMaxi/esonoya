@@ -102,6 +102,7 @@ export default function TicketPage() {
         <div className="px-5 py-5 space-y-3">
           <Row label="Centre"   value={appt.center.name} />
           <Row label="Date"     value={formatDate(appt.appointment_date)} />
+          {appt.time_slot && <Row label="Créneau" value={appt.time_slot} />}
           <Row label="Demandeur" value={`${appt.applicant.first_name} ${appt.applicant.last_name}`} />
           <Row label="Type"     value={REQUEST_TYPE_LABEL[appt.request_type]} />
           {appt.qr_scanned_at && (

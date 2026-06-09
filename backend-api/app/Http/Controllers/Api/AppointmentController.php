@@ -94,7 +94,7 @@ class AppointmentController extends Controller
             return $appt;
         });
 
-        $appointment->load(['center', 'applicant']);
+        $appointment->load(['center', 'applicant', 'quota']);
 
         // SMS de confirmation (non bloquant — échec silencieux)
         if ($appointment->applicant?->phone) {
@@ -102,6 +102,7 @@ class AppointmentController extends Controller
                 'reference' => $appointment->reference_number,
                 'center'    => $appointment->center->name,
                 'date'      => Carbon::parse($appointment->appointment_date)->locale('fr')->isoFormat('D MMMM YYYY'),
+                'slot'      => $appointment->quota?->time_slot ?? '',
             ], $appointment->id);
         }
 
@@ -112,7 +113,7 @@ class AppointmentController extends Controller
     public function show(Request $request, PassportRequest $appointment): JsonResponse
     {
         $this->authorizeOwner($request, $appointment);
-        $appointment->load(['center', 'applicant', 'declarant']);
+        $appointment->load(['center', 'applicant', 'declarant', 'quota']);
 
         return response()->json(['data' => $this->formatAppointment($appointment)]);
     }
@@ -120,7 +121,7 @@ class AppointmentController extends Controller
     // ─── Mes rendez-vous ─────────────────────────────────────────
     public function myAppointments(Request $request): JsonResponse
     {
-        $appointments = PassportRequest::with(['center', 'applicant'])
+        $appointments = PassportRequest::with(['center', 'applicant', 'quota'])
             ->where('booker_user_id', $request->user()->id)
             ->orderBy('appointment_date', 'desc')
             ->get();
@@ -184,7 +185,7 @@ class AppointmentController extends Controller
             ]);
         }
 
-        $appointment->load(['center', 'applicant']);
+        $appointment->load(['center', 'applicant', 'quota']);
 
         $qrUrl     = $this->qrCodeService->buildQrContent($appointment);
         $qrSvg     = (string) QrCode::format('svg')->size(200)->margin(2)->errorCorrection('M')->generate($qrUrl);
@@ -227,7 +228,7 @@ class AppointmentController extends Controller
     {
         $this->authorizeOwner($request, $appointment);
 
-        $appointment->load(['center', 'applicant']);
+        $appointment->load(['center', 'applicant', 'quota']);
 
         $mspcDataUri    = $this->imgDataUri(public_path('images/mspc.jpeg'),   'image/jpeg');
         $dcpafDataUri   = $this->imgDataUri(public_path('images/dcpaf.jpg'),   'image/jpeg');
@@ -299,7 +300,9 @@ class AppointmentController extends Controller
             'id'               => $appointment->id,
             'reference_number' => $appointment->reference_number,
             'request_type'     => $appointment->request_type,
+            'receipt_reference'=> $appointment->receipt_reference,
             'appointment_date' => $appointment->appointment_date->toDateString(),
+            'time_slot'        => $appointment->quota?->time_slot ?? null,
             'status'           => $appointment->status,
             'qr_token'         => $appointment->qr_token,
             'qr_scanned_at'    => $appointment->qr_scanned_at?->toIso8601String(),

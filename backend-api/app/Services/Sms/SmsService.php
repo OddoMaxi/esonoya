@@ -30,10 +30,13 @@ class SmsService
 
     public function sendConfirmation(string $phone, array $data, ?string $passportRequestId = null): bool
     {
+        $slot = ! empty($data['slot']) ? ' ' . $data['slot'] : '';
+
         $message = strtr(config('sms.templates.confirmation'), [
             '{reference}' => $data['reference'],
             '{center}'    => $data['center'],
             '{date}'      => $data['date'],
+            '{slot}'      => $slot,
         ]);
 
         return $this->dispatch($phone, $message, 'confirmation', $passportRequestId);
@@ -41,10 +44,13 @@ class SmsService
 
     public function sendReminder(string $phone, array $data, ?string $passportRequestId = null): bool
     {
+        $slot = ! empty($data['slot']) ? ' ' . $data['slot'] : '';
+
         $message = strtr(config('sms.templates.reminder'), [
             '{reference}' => $data['reference'],
             '{center}'    => $data['center'],
             '{date}'      => $data['date'],
+            '{slot}'      => $slot,
         ]);
 
         return $this->dispatch($phone, $message, 'reminder', $passportRequestId);

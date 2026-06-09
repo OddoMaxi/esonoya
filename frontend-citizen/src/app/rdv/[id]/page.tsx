@@ -140,6 +140,7 @@ export default function AppointmentDetailPage() {
                 <InfoRow label="Adresse" value={appt.center.address} />
               )}
               <InfoRow label="Date"            value={formatDate(appt.appointment_date)} />
+              {appt.time_slot && <InfoRow label="Créneau" value={appt.time_slot} />}
               <InfoRow label="Type"            value={REQUEST_TYPE_LABEL[appt.request_type] ?? appt.request_type} />
               <InfoRow label="Réf. paiement"   value={appt.receipt_reference} mono />
             </div>

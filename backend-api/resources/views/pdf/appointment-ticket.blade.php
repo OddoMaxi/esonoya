@@ -324,6 +324,11 @@
             <div class="info-value" style="font-size:14px;">
               {{ \Carbon\Carbon::parse($appointment->appointment_date)->locale('fr')->isoFormat('dddd D MMMM YYYY') }}
             </div>
+            @if($appointment->quota?->time_slot)
+              <div class="info-sub" style="font-weight:bold; color:#1e3a8a; margin-top:3px;">
+                Créneau : {{ $appointment->quota->time_slot }}
+              </div>
+            @endif
           </div>
 
           <hr class="divider">
