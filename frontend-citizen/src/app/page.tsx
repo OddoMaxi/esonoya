@@ -126,14 +126,14 @@ export default function HomePage() {
       </section>
 
       {/* ── Délais express ── */}
-      {/* <section className="bg-gray-50 border-y border-gray-200 px-4 py-10">
+      <section className="bg-gray-50 border-y border-gray-200 px-4 py-10">
         <div className="max-w-4xl mx-auto">
           <p className="text-center text-sm font-semibold text-gray-400 uppercase tracking-widest mb-6">
             Délais de traitement disponibles
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { delay: "20 jours", label: "Standard",  color: "bg-blue-50 border-blue-200 text-blue-900" },
+              { delay: "30 jours", label: "Standard",  color: "bg-blue-50 border-blue-200 text-blue-900" },
               { delay: "72 h",     label: "Rapide",    color: "bg-green-50 border-green-200 text-green-900" },
               { delay: "48 h",     label: "Urgent",    color: "bg-orange-50 border-orange-200 text-orange-900" },
               { delay: "24 h",     label: "Express",   color: "bg-red-50 border-red-200 text-red-900" },
@@ -145,7 +145,7 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-      </section> */}
+      </section> 
 
       {/* ── Procédure ── */}
       <section className="bg-blue-950 text-white px-4 py-12 sm:py-14">
