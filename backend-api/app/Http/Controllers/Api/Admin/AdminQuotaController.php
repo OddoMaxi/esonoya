@@ -101,15 +101,22 @@ class AdminQuotaController extends Controller
     }
 
     /**
-     * PUT /api/admin/quotas/{quota} — Update total_slots
+     * PUT /api/admin/quotas/{quota} — Update total_slots and/or time_slot label
      */
     public function update(Request $request, Quota $quota): JsonResponse
     {
         $data = $request->validate([
-            'total_slots' => ['required', 'integer', 'min:1', 'max:500'],
+            'total_slots' => ['sometimes', 'integer', 'min:1', 'max:500'],
+            'time_slot'   => ['sometimes', 'nullable', 'string', 'max:15'],
         ]);
 
-        $this->quotaService->updateCapacity($quota, $data['total_slots']);
+        if (isset($data['total_slots'])) {
+            $this->quotaService->updateCapacity($quota, $data['total_slots']);
+        }
+
+        if (array_key_exists('time_slot', $data)) {
+            $quota->update(['time_slot' => $data['time_slot'] ?: null]);
+        }
 
         return response()->json(['data' => $quota->fresh()]);
     }

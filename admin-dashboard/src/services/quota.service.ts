@@ -30,10 +30,8 @@ export const quotaService = {
     return data;
   },
 
-  async update(quotaId: string, totalSlots: number): Promise<Quota> {
-    const { data } = await api.put<ApiResponse<Quota>>(`/admin/quotas/${quotaId}`, {
-      total_slots: totalSlots,
-    });
+  async update(quotaId: string, payload: { total_slots?: number; time_slot?: string | null }): Promise<Quota> {
+    const { data } = await api.put<ApiResponse<Quota>>(`/admin/quotas/${quotaId}`, payload);
     return data.data;
   },
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { quotaService } from "@/services/quota.service";
 import { formatDate } from "@/lib/utils";
@@ -140,6 +140,16 @@ export default function QuotasPage() {
       loadQuotas();
     } catch {
       notify("Erreur.", true);
+    }
+  };
+
+  const handleUpdateTimeSlot = async (quota: Quota, newSlot: string) => {
+    try {
+      const updated = await quotaService.update(quota.id, { time_slot: newSlot || null });
+      setQuotas((prev) => prev.map((q) => q.id === quota.id ? updated : q));
+      notify("Créneau mis à jour.");
+    } catch {
+      notify("Erreur lors de la mise à jour.", true);
     }
   };
 
@@ -311,9 +321,14 @@ export default function QuotasPage() {
                         {formatDate(quota.date)}
                       </td>
                       <td className="px-4 py-3">
-                        {quota.time_slot
-                          ? <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs font-mono font-semibold">{quota.time_slot}</span>
-                          : <span className="text-gray-400 text-xs">—</span>
+                        {canManage
+                          ? <TimeSlotEditor
+                              value={quota.time_slot}
+                              onSave={(v) => handleUpdateTimeSlot(quota, v)}
+                            />
+                          : quota.time_slot
+                            ? <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs font-mono font-semibold">{quota.time_slot}</span>
+                            : <span className="text-gray-400 text-xs">—</span>
                         }
                       </td>
                       <td className="px-4 py-3 text-right text-gray-600">{quota.total_slots}</td>
@@ -642,6 +657,61 @@ function BulkModal({
         <ModalActions onClose={onClose} loading={loading} label="Générer" />
       </form>
     </ModalOverlay>
+  );
+}
+
+// ─── Éditeur inline de créneau ───────────────────────────────
+
+function TimeSlotEditor({
+  value,
+  onSave,
+}: {
+  value: string | null;
+  onSave: (v: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value ?? "");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const commit = () => {
+    setEditing(false);
+    if (draft !== (value ?? "")) onSave(draft);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter")  commit();
+    if (e.key === "Escape") { setDraft(value ?? ""); setEditing(false); }
+  };
+
+  if (editing) {
+    return (
+      <input
+        ref={inputRef}
+        autoFocus
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={handleKeyDown}
+        placeholder="ex: 07h-09h"
+        maxLength={15}
+        className="w-24 px-1.5 py-0.5 border border-blue-400 rounded text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+      />
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => { setDraft(value ?? ""); setEditing(true); }}
+      title="Cliquer pour modifier"
+      className="group flex items-center gap-1"
+    >
+      {value
+        ? <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs font-mono font-semibold group-hover:bg-blue-200 transition-colors">{value}</span>
+        : <span className="text-gray-300 text-xs group-hover:text-gray-500 transition-colors">— modifier</span>
+      }
+      <span className="opacity-0 group-hover:opacity-100 text-gray-400 text-xs transition-opacity">✏️</span>
+    </button>
   );
 }
 
