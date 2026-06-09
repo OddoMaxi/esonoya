@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Center;
 use App\Models\CenterClosure;
 use App\Models\Quota;
+use App\Models\TimeSlotTemplate;
 use App\Services\QuotaService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -269,6 +270,61 @@ class AdminQuotaController extends Controller
     }
 
     // ─── Public holidays ─────────────────────────────────────────
+
+    // ─── Modèles de créneaux horaires ────────────────────────────
+
+    /**
+     * GET /api/admin/time-slot-templates
+     */
+    public function listTimeSlots(): JsonResponse
+    {
+        return response()->json([
+            'data' => TimeSlotTemplate::orderBy('sort_order')->orderBy('label')->get(),
+        ]);
+    }
+
+    /**
+     * POST /api/admin/time-slot-templates
+     */
+    public function storeTimeSlot(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'label'      => ['required', 'string', 'max:15', 'unique:time_slot_templates,label'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        $tpl = TimeSlotTemplate::create([
+            'label'      => $data['label'],
+            'sort_order' => $data['sort_order'] ?? TimeSlotTemplate::max('sort_order') + 1,
+        ]);
+
+        return response()->json(['data' => $tpl], 201);
+    }
+
+    /**
+     * PUT /api/admin/time-slot-templates/{tpl}
+     */
+    public function updateTimeSlot(Request $request, TimeSlotTemplate $tpl): JsonResponse
+    {
+        $data = $request->validate([
+            'label'      => ['sometimes', 'string', 'max:15', 'unique:time_slot_templates,label,' . $tpl->id],
+            'sort_order' => ['sometimes', 'integer', 'min:0'],
+        ]);
+
+        $tpl->update($data);
+
+        return response()->json(['data' => $tpl->fresh()]);
+    }
+
+    /**
+     * DELETE /api/admin/time-slot-templates/{tpl}
+     */
+    public function destroyTimeSlot(TimeSlotTemplate $tpl): JsonResponse
+    {
+        $tpl->delete();
+
+        return response()->json(['message' => 'Créneau supprimé.']);
+    }
 
     /**
      * GET /api/admin/public-holidays

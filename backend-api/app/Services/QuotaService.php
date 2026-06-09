@@ -6,6 +6,7 @@ use App\Models\Center;
 use App\Models\CenterClosure;
 use App\Models\PublicHoliday;
 use App\Models\Quota;
+use App\Models\TimeSlotTemplate;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -104,8 +105,14 @@ class QuotaService
      */
     public function generateDaySlots(Center $center, string $date, int $slotsPerSlot): int
     {
+        // Utiliser les templates de la DB, sinon les valeurs par défaut
+        $slots = TimeSlotTemplate::orderBy('sort_order')->orderBy('label')->pluck('label')->toArray();
+        if (empty($slots)) {
+            $slots = Quota::TIME_SLOTS;
+        }
+
         $created = 0;
-        foreach (Quota::TIME_SLOTS as $slot) {
+        foreach ($slots as $slot) {
             $exists = Quota::where('center_id', $center->id)
                 ->whereDate('date', $date)
                 ->where('time_slot', $slot)
@@ -153,9 +160,12 @@ class QuotaService
 
             if (! $skip) {
                 if ($useTimeSlots) {
-                    // Générer un quota par créneau
-                    $perSlot = $slotsPerTimeSlot > 0 ? $slotsPerTimeSlot : intdiv($dailySlots, count(Quota::TIME_SLOTS));
-                    foreach (Quota::TIME_SLOTS as $slot) {
+                    // Utiliser les templates de la DB, sinon les valeurs par défaut
+                    $templateSlots = TimeSlotTemplate::orderBy('sort_order')->pluck('label')->toArray();
+                    if (empty($templateSlots)) $templateSlots = Quota::TIME_SLOTS;
+
+                    $perSlot = $slotsPerTimeSlot > 0 ? $slotsPerTimeSlot : intdiv($dailySlots, count($templateSlots));
+                    foreach ($templateSlots as $slot) {
                         if ($overwrite) {
                             Quota::updateOrCreate(
                                 ['center_id' => $center->id, 'date' => $dateStr, 'time_slot' => $slot],

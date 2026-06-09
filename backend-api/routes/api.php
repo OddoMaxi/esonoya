@@ -93,6 +93,15 @@ Route::prefix('admin')->middleware(['auth:admin'])->group(function () {
     Route::delete('center-closures/{closure}', [AdminQuotaController::class, 'destroyClosure'])
         ->middleware('permission:centers.update');
 
+    // ─ Modèles créneaux horaires ─
+    Route::get('time-slot-templates',              [AdminQuotaController::class, 'listTimeSlots']);
+    Route::post('time-slot-templates',             [AdminQuotaController::class, 'storeTimeSlot'])
+        ->middleware('permission:quotas.create');
+    Route::put('time-slot-templates/{tpl}',        [AdminQuotaController::class, 'updateTimeSlot'])
+        ->middleware('permission:quotas.update');
+    Route::delete('time-slot-templates/{tpl}',     [AdminQuotaController::class, 'destroyTimeSlot'])
+        ->middleware('permission:quotas.delete');
+
     // ─ Jours fériés ─
     Route::get('public-holidays',              [AdminQuotaController::class, 'listHolidays']);
     Route::post('public-holidays',             [AdminQuotaController::class, 'storeHoliday'])

@@ -4,13 +4,13 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { quotaService } from "@/services/quota.service";
 import { formatDate } from "@/lib/utils";
-import type { Center, CenterClosure, PublicHoliday, Quota } from "@/types";
+import type { Center, CenterClosure, PublicHoliday, Quota, TimeSlotTemplate } from "@/types";
 import { api } from "@/lib/api";
 import type { ApiResponse } from "@/types";
 
 // ─── Types locaux ─────────────────────────────────────────────
 
-type Tab = "quotas" | "closures" | "holidays";
+type Tab = "quotas" | "closures" | "holidays" | "timeslots";
 
 // ─── Sous-composants ──────────────────────────────────────────
 
@@ -70,6 +70,9 @@ export default function QuotasPage() {
   // Jours fériés
   const [holidays, setHolidays] = useState<PublicHoliday[]>([]);
 
+  // Créneaux horaires
+  const [timeSlots, setTimeSlots] = useState<TimeSlotTemplate[]>([]);
+
   // Modales
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [showSuspendModal, setShowSuspendModal] = useState<Quota | null>(null);
@@ -90,6 +93,7 @@ export default function QuotasPage() {
     });
 
     quotaService.listHolidays().then(setHolidays);
+    quotaService.listTimeSlots().then(setTimeSlots);
   }, []);
 
   const loadQuotas = useCallback(async () => {
@@ -222,7 +226,7 @@ export default function QuotasPage() {
       {/* Tabs */}
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex gap-6">
-          {(["quotas", "closures", "holidays"] as Tab[]).map((t) => (
+          {(["quotas", "closures", "holidays", "timeslots"] as Tab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -232,9 +236,10 @@ export default function QuotasPage() {
                   : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
-              {t === "quotas" && "Quotas journaliers"}
-              {t === "closures" && "Fermetures"}
-              {t === "holidays" && "Jours fériés"}
+              {t === "quotas"    && "Quotas journaliers"}
+              {t === "closures"  && "Fermetures"}
+              {t === "holidays"  && "Jours fériés"}
+              {t === "timeslots" && "⏰ Créneaux"}
             </button>
           ))}
         </nav>
@@ -483,12 +488,23 @@ export default function QuotasPage() {
         </div>
       )}
 
+      {/* ── Onglet Créneaux horaires ──────────────────────────────── */}
+      {tab === "timeslots" && (
+        <TimeSlotsTab
+          slots={timeSlots}
+          canManage={canManage}
+          onUpdate={setTimeSlots}
+          onNotify={notify}
+        />
+      )}
+
       {/* ── Modales ───────────────────────────────────────────────── */}
 
       {showBulkModal && (
         <BulkModal
           centerId={selectedCenter}
           centerName={centerName}
+          timeSlots={timeSlots}
           onClose={() => setShowBulkModal(false)}
           onSuccess={(msg) => { notify(msg); loadQuotas(); }}
           onError={(msg) => notify(msg, true)}
@@ -498,6 +514,7 @@ export default function QuotasPage() {
       {showSingleModal && (
         <SingleQuotaModal
           centerId={selectedCenter}
+          timeSlots={timeSlots}
           onClose={() => setShowSingleModal(false)}
           onSuccess={() => { notify("Quota créé."); loadQuotas(); }}
           onError={(msg) => notify(msg, true)}
@@ -508,6 +525,7 @@ export default function QuotasPage() {
         <GenerateSlotsModal
           centerId={selectedCenter}
           centerName={centerName}
+          timeSlots={timeSlots}
           onClose={() => setShowGenerateSlotsModal(false)}
           onSuccess={(msg) => { notify(msg); loadQuotas(); }}
           onError={(msg) => notify(msg, true)}
@@ -551,16 +569,19 @@ export default function QuotasPage() {
 function BulkModal({
   centerId,
   centerName,
+  timeSlots,
   onClose,
   onSuccess,
   onError,
 }: {
   centerId: string;
   centerName: string;
+  timeSlots: TimeSlotTemplate[];
   onClose: () => void;
   onSuccess: (msg: string) => void;
   onError: (msg: string) => void;
 }) {
+  const slotCount = timeSlots.length || 4;
   const [form, setForm] = useState({
     date_from: "",
     date_to: "",
@@ -628,7 +649,7 @@ function BulkModal({
                 onChange={(e) => setForm({ ...form, slots_per_time_slot: e.target.value })}
                 className="input" />
               <p className="text-xs text-blue-600 mt-1">
-                Total par jour : {Number(form.slots_per_time_slot) * 4} places
+                Total par jour : {Number(form.slots_per_time_slot) * slotCount} places ({slotCount} créneaux)
               </p>
             </Field>
           ) : (
@@ -657,6 +678,139 @@ function BulkModal({
         <ModalActions onClose={onClose} loading={loading} label="Générer" />
       </form>
     </ModalOverlay>
+  );
+}
+
+// ─── Onglet Créneaux horaires ─────────────────────────────────
+
+function TimeSlotsTab({
+  slots,
+  canManage,
+  onUpdate,
+  onNotify,
+}: {
+  slots: TimeSlotTemplate[];
+  canManage: boolean;
+  onUpdate: (slots: TimeSlotTemplate[]) => void;
+  onNotify: (msg: string, isError?: boolean) => void;
+}) {
+  const [showAdd, setShowAdd] = useState(false);
+  const [addLabel, setAddLabel] = useState("");
+  const [adding, setAdding] = useState(false);
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addLabel.trim()) return;
+    setAdding(true);
+    try {
+      const tpl = await quotaService.createTimeSlot({ label: addLabel.trim(), sort_order: slots.length + 1 });
+      onUpdate([...slots, tpl]);
+      onNotify("Créneau ajouté.");
+      setAddLabel("");
+      setShowAdd(false);
+    } catch {
+      onNotify("Erreur : ce libellé existe peut-être déjà.", true);
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const handleDelete = async (tpl: TimeSlotTemplate) => {
+    if (!confirm(`Supprimer le créneau "${tpl.label}" ?`)) return;
+    try {
+      await quotaService.deleteTimeSlot(tpl.id);
+      onUpdate(slots.filter((s) => s.id !== tpl.id));
+      onNotify("Créneau supprimé.");
+    } catch {
+      onNotify("Erreur lors de la suppression.", true);
+    }
+  };
+
+  const handleRename = async (tpl: TimeSlotTemplate, newLabel: string) => {
+    if (!newLabel.trim() || newLabel === tpl.label) return;
+    try {
+      const updated = await quotaService.updateTimeSlot(tpl.id, { label: newLabel.trim() });
+      onUpdate(slots.map((s) => s.id === tpl.id ? updated : s));
+      onNotify("Créneau mis à jour.");
+    } catch {
+      onNotify("Erreur : ce libellé existe peut-être déjà.", true);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-gray-500">
+            Ces créneaux sont disponibles lors de la création de quotas. Ils sont aussi utilisés dans les SMS et PDF.
+          </p>
+        </div>
+        {canManage && (
+          <button
+            onClick={() => setShowAdd(true)}
+            className="px-3 py-2 text-sm bg-blue-900 text-white rounded-lg hover:bg-blue-800"
+          >
+            + Ajouter
+          </button>
+        )}
+      </div>
+
+      {showAdd && (
+        <form onSubmit={handleAdd} className="flex gap-2 items-center bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+          <input
+            autoFocus
+            type="text"
+            value={addLabel}
+            onChange={(e) => setAddLabel(e.target.value)}
+            placeholder="ex: 07h-09h"
+            maxLength={15}
+            className="input flex-1 font-mono"
+          />
+          <button type="submit" disabled={adding} className="px-3 py-1.5 bg-blue-900 text-white text-sm rounded-lg disabled:opacity-50">
+            {adding ? "…" : "Ajouter"}
+          </button>
+          <button type="button" onClick={() => setShowAdd(false)} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+            Annuler
+          </button>
+        </form>
+      )}
+
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        {slots.length === 0 ? (
+          <div className="text-center py-12 text-gray-400 text-sm">Aucun créneau défini.</div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Libellé</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Ordre</th>
+                {canManage && <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Actions</th>}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {slots.map((tpl) => (
+                <tr key={tpl.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3">
+                    {canManage
+                      ? <TimeSlotEditor value={tpl.label} onSave={(v) => handleRename(tpl, v)} />
+                      : <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs font-mono font-semibold">{tpl.label}</span>
+                    }
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 text-xs">{tpl.sort_order}</td>
+                  {canManage && (
+                    <td className="px-4 py-3 text-right">
+                      <button onClick={() => handleDelete(tpl)} className="text-xs text-red-500 hover:underline">
+                        Supprimer
+                      </button>
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -722,12 +876,14 @@ const TIME_SLOTS = ["08h-10h", "10h-12h", "12h-14h", "14h-16h"];
 function GenerateSlotsModal({
   centerId,
   centerName,
+  timeSlots,
   onClose,
   onSuccess,
   onError,
 }: {
   centerId: string;
   centerName: string;
+  timeSlots: TimeSlotTemplate[];
   onClose: () => void;
   onSuccess: (msg: string) => void;
   onError: (msg: string) => void;
@@ -735,6 +891,8 @@ function GenerateSlotsModal({
   const [date, setDate] = useState("");
   const [slotsPerSlot, setSlotsPerSlot] = useState("20");
   const [loading, setLoading] = useState(false);
+
+  const labels = timeSlots.length > 0 ? timeSlots.map((t) => t.label) : TIME_SLOTS;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -759,7 +917,7 @@ function GenerateSlotsModal({
       <h2 className="text-lg font-bold text-gray-900 mb-1">Générer les créneaux du jour</h2>
       <p className="text-sm text-gray-500 mb-4">{centerName}</p>
       <div className="flex gap-2 flex-wrap mb-4">
-        {TIME_SLOTS.map((s) => (
+        {labels.map((s) => (
           <span key={s} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-mono font-semibold">{s}</span>
         ))}
       </div>
@@ -785,15 +943,18 @@ function GenerateSlotsModal({
 
 function SingleQuotaModal({
   centerId,
+  timeSlots,
   onClose,
   onSuccess,
   onError,
 }: {
   centerId: string;
+  timeSlots: TimeSlotTemplate[];
   onClose: () => void;
   onSuccess: () => void;
   onError: (msg: string) => void;
 }) {
+  const slotLabels = timeSlots.length > 0 ? timeSlots.map((t) => t.label) : TIME_SLOTS;
   const [date, setDate] = useState("");
   const [slots, setSlots] = useState("30");
   const [timeSlot, setTimeSlot] = useState("");
@@ -829,7 +990,7 @@ function SingleQuotaModal({
         <Field label="Créneau horaire (optionnel)">
           <select value={timeSlot} onChange={(e) => setTimeSlot(e.target.value)} className="input">
             <option value="">Aucun (quota journalier)</option>
-            {TIME_SLOTS.map((s) => (
+            {slotLabels.map((s) => (
               <option key={s} value={s}>{s}</option>
             ))}
           </select>

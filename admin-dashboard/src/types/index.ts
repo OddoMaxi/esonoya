@@ -1,5 +1,11 @@
 // ─── Types Admin eSonoya ──────────────────────────────────────
 
+export interface TimeSlotTemplate {
+  id: string;
+  label: string;
+  sort_order: number;
+}
+
 export interface AdminUser {
   id: string;
   center_id: string | null;

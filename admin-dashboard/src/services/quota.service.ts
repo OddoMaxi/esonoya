@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import type { ApiResponse, CenterClosure, PublicHoliday, Quota } from "@/types";
+import type { ApiResponse, CenterClosure, PublicHoliday, Quota, TimeSlotTemplate } from "@/types";
 
 export const quotaService = {
   // ── Quotas ──────────────────────────────────────────────────
@@ -116,5 +116,26 @@ export const quotaService = {
 
   async deleteHoliday(id: string): Promise<void> {
     await api.delete(`/admin/public-holidays/${id}`);
+  },
+
+  // ── Modèles de créneaux horaires ─────────────────────────────
+
+  async listTimeSlots(): Promise<TimeSlotTemplate[]> {
+    const { data } = await api.get<ApiResponse<TimeSlotTemplate[]>>("/admin/time-slot-templates");
+    return data.data;
+  },
+
+  async createTimeSlot(payload: { label: string; sort_order?: number }): Promise<TimeSlotTemplate> {
+    const { data } = await api.post<ApiResponse<TimeSlotTemplate>>("/admin/time-slot-templates", payload);
+    return data.data;
+  },
+
+  async updateTimeSlot(id: string, payload: { label?: string; sort_order?: number }): Promise<TimeSlotTemplate> {
+    const { data } = await api.put<ApiResponse<TimeSlotTemplate>>(`/admin/time-slot-templates/${id}`, payload);
+    return data.data;
+  },
+
+  async deleteTimeSlot(id: string): Promise<void> {
+    await api.delete(`/admin/time-slot-templates/${id}`);
   },
 };
