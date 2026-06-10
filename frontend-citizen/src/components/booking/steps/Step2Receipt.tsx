@@ -10,7 +10,7 @@ import { useBooking } from "@/contexts/BookingContext";
 const schema = z.object({
   receipt_reference: z
     .string()
-    .min(1, "La référence du reçu est obligatoire")
+    .min(1, "La référence du reçu bancaire est obligatoire")
     .min(5, "La référence doit contenir au moins 5 caractères")
     .max(100, "La référence est trop longue"),
 });
@@ -54,7 +54,7 @@ export function Step2Receipt() {
 
       <Input
         id="receipt_reference"
-        label="Référence du reçu"
+        label="Référence du reçu bancaire"
         placeholder=""
         autoComplete="off"
         autoFocus
